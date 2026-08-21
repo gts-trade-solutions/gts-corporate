@@ -33,7 +33,7 @@ same values in your hosting provider's dashboard for production.
 
 | Variable | Required | Purpose |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | **Yes** | Public origin, no trailing slash. Drives canonical tags, Open Graph URLs, `sitemap.xml` and `robots.txt`. **Read at build time** and baked into the prerendered pages — it must be present when `npm run build` runs, and you must rebuild after changing the domain. Setting it only at runtime has no effect. Without it everything falls back to `http://localhost:3000`; the build prints a warning. |
+| `NEXT_PUBLIC_SITE_URL` | **Yes** | Public origin. Drives canonical tags, Open Graph URLs, `sitemap.xml` and `robots.txt`. **Read at build time** and baked into the prerendered pages — it must be present when `npm run build` runs, and you must rebuild after changing the domain. Setting it only at runtime has no effect. A trailing slash, a path, or a bare hostname (`example.com`) are all accepted and normalised. If it is unset, empty or malformed the build still succeeds and falls back to Vercel's domain, then `http://localhost:3000`, printing a warning either way. |
 | `RFQ_TO_EMAIL` | **Yes** | Mailbox that receives enquiries. |
 | `SMTP_HOST` | **Yes** | SMTP server for outgoing mail. |
 | `SMTP_PORT` | No | Defaults to `587`. |

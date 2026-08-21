@@ -6,9 +6,44 @@
  * contact information for this site is approved.
  */
 
-export const siteUrl = (
-  process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"
-).replace(/\/$/, "");
+/**
+ * Public origin used for canonical URLs, Open Graph tags, sitemap.xml and
+ * robots.txt.
+ *
+ * Resolution order: the explicit setting, then Vercel's production domain,
+ * then the per-deployment Vercel URL, then localhost.
+ *
+ * `||` rather than `??` is deliberate. An environment variable that exists but
+ * is empty — which is what you get from an empty field in a hosting dashboard
+ * — must fall through. With `??` it does not, and `new URL("")` then throws
+ * ERR_INVALID_URL while Next collects page data, failing the whole build.
+ * A malformed value is warned about and skipped rather than crashing.
+ */
+function resolveSiteUrl(): string {
+  const candidates = [
+    process.env.NEXT_PUBLIC_SITE_URL,
+    // Vercel exposes these to Next.js projects automatically.
+    process.env.NEXT_PUBLIC_VERCEL_PROJECT_PRODUCTION_URL,
+    process.env.NEXT_PUBLIC_VERCEL_URL,
+  ];
+
+  for (const candidate of candidates) {
+    const value = candidate?.trim();
+    if (!value) continue;
+    // Bare hostnames (example.com) are accepted and assumed https.
+    const absolute = /^https?:\/\//i.test(value) ? value : `https://${value}`;
+    try {
+      // .origin also normalises away any path or trailing slash.
+      return new URL(absolute).origin;
+    } catch {
+      console.warn(`[gts] Ignoring invalid site URL: ${JSON.stringify(value)}`);
+    }
+  }
+
+  return "http://localhost:3000";
+}
+
+export const siteUrl = resolveSiteUrl();
 
 export const site = {
   name: "GTS Trade Solutions",
