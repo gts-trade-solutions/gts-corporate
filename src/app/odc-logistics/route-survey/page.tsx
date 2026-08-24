@@ -96,8 +96,11 @@ export default function RouteSurveyPage() {
               </div>
             </div>
 
+            {/* This column stretches to the text column's height, giving a
+                container near 1.27 — so it needs a source close to that, not
+                the 1.95 survey-team shot, which lost a third of its width here. */}
             <div className="relative aspect-[16/10] overflow-hidden bg-navy-900 lg:aspect-auto lg:min-h-[480px]">
-              <Media slot="routeSurveyTeam" sizes="(min-width: 1024px) 50vw, 100vw" priority />
+              <Media slot="routeSurveyJunction" sizes="(min-width: 1024px) 50vw, 100vw" priority />
             </div>
           </div>
         </Container>
@@ -109,12 +112,14 @@ export default function RouteSurveyPage() {
       <Section>
         <Reveal>
           <div className="grid items-center gap-8 lg:grid-cols-2 lg:gap-14">
+            {/* 2/1 against a 1.95 source — the wide survey-team shot needs a
+                wide box. Keep container and source aspects in step here. */}
             <MediaFigure
-              slot="routeSurveyInstrument"
+              slot="routeSurveyTeam"
               plate="PLATE 01"
-              caption="Measurement, not observation"
+              caption="Recorded in the field, point by point"
               sizes="(min-width: 1024px) 46vw, 100vw"
-              className="aspect-[16/11]"
+              className="aspect-[2/1]"
             />
             <div>
               {lbiIntro.map((paragraph) => (
@@ -176,12 +181,14 @@ export default function RouteSurveyPage() {
 
           <div className="lg:col-span-5">
             <Reveal>
+              {/* 5/4 against a 1.21 source. The previous 3/4 portrait box held
+                  a 1.94 wide photograph and showed barely a third of it. */}
               <MediaFigure
-                slot="routeSurveyTeam"
+                slot="routeSurveyInstrument"
                 plate="PLATE 02"
-                caption="Recorded in the field, point by point"
+                caption="Measurement, not observation"
                 sizes="(min-width: 1024px) 38vw, 100vw"
-                className="aspect-[4/3] lg:aspect-[3/4]"
+                className="aspect-[5/4]"
               />
             </Reveal>
           </div>
