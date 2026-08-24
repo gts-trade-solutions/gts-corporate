@@ -137,12 +137,12 @@ export const primaryNav: NavItem[] = [
         description: "Over-dimensional and heavy-lift cargo movement, planned end to end.",
       },
       {
-        label: "LBI Route Survey",
+        label: "Route Survey Reports",
         href: "/odc-logistics/route-survey",
         description: "Physical survey of the route, chainage by chainage, with GPS and photographs.",
       },
       {
-        label: "LBI Reports",
+        label: "Reports",
         href: "/odc-logistics/reports",
         description: "The survey deliverable — obstruction schedule, drawings and route map.",
       },

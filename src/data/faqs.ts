@@ -322,7 +322,7 @@ export const routeSurveyFaqs: Faq[] = [
   {
     question: "What do I get at the end of a survey?",
     answer:
-      "An obstruction schedule in chainage order, a route map with the points plotted, a GA drawing of the cargo on the selected trailer, a GPX track for navigation devices, a section-by-section difficulty assessment, and the indexed photographic record. These are delivered as the survey report — see the LBI Reports page for what that document contains.",
+      "An obstruction schedule in chainage order, a route map with the points plotted, a GA drawing of the cargo on the selected trailer, a GPX track for navigation devices, a section-by-section difficulty assessment, and the indexed photographic record. These are delivered as the survey report — see the Reports page for what that document contains.",
   },
   {
     question: "How long does a route survey take?",
@@ -343,7 +343,7 @@ export const routeSurveyFaqs: Faq[] = [
 
 export const reportFaqs: Faq[] = [
   {
-    question: "What is in an LBI route survey report?",
+    question: "What is in a route survey report?",
     answer:
       "A project and cargo summary, a route summary with start, intermediate and end locations and the total surveyed distance, the obstruction schedule with every point in chainage order, the field photographs placed against their points, the route map, the GA drawing, and the remarks and required action per obstruction.",
   },

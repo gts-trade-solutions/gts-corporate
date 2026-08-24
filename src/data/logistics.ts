@@ -10,7 +10,7 @@ import type { CategoryBlock } from "./types";
  * width, height, length or weight and therefore cannot simply be put on a
  * standard trailer and driven.
  *
- * The route-survey material below describes what an LBI survey actually records
+ * The route-survey material below describes what a route survey actually records
  * in the field — the obstruction categories, the per-point data and the
  * deliverables are the ones the survey tooling captures, not a generic list.
  *
@@ -614,21 +614,21 @@ export const odcSections: AlternatingSection[] = [
 /** The topic strip beneath the route-survey hero. */
 export const odcTopicTabs: { label: string; href: string }[] = [
   { label: "ODC Logistics", href: "/odc-logistics" },
-  { label: "LBI Route Survey", href: "/odc-logistics/route-survey" },
-  { label: "LBI Reports", href: "/odc-logistics/reports" },
+  { label: "Route Survey Reports", href: "/odc-logistics/route-survey" },
+  { label: "Reports", href: "/odc-logistics/reports" },
   { label: "Manufacturing", href: "/manufacturing" },
   { label: "Consulting", href: "/consulting" },
 ];
 
-/** LBI is Location-Based Intelligence. */
-export const lbiIntro = [
-  "Location-Based Intelligence is about facilitating hindrance-free movement of goods by conducting route surveys with a team of experts on the ground. The LBI team produces reports with recommendations that let a consignment move without surprises, using survey tooling that records every point with coordinates and photographs so accuracy does not rest on memory.",
+/** Intro copy for the route survey reports page. */
+export const routeSurveyIntro = [
+  "Location-Based Intelligence is about facilitating hindrance-free movement of goods by conducting route surveys with a team of experts on the ground. The survey team produces reports with recommendations that let a consignment move without surprises, using survey tooling that records every point with coordinates and photographs so accuracy does not rest on memory.",
   "GTS works with engineering and civil specialists to execute route surveys, identify the shortest feasible route, establish load securing, perform vehicle stability calculations, and determine bridge capacity and road filling requirements together with the associated civil costs — so a movement is planned on cost as well as on feasibility.",
   "The same team can support industries, logistics operators and transport companies in specifying trailers suited to a particular cargo and application, where standard equipment does not fit the consignment.",
 ];
 
 /** Key features. `conditional` items depend on the scope agreed for the survey. */
-export const lbiKeyFeatures: { text: string; conditional?: boolean }[] = [
+export const routeSurveyKeyFeatures: { text: string; conditional?: boolean }[] = [
   { text: "Turning circle diagrams with vehicle simulation along with the load" },
   { text: "Railway crossing related obstruction details" },
   { text: "LT/HT cable, tree branches, signboards and overhead bridge height constraints" },

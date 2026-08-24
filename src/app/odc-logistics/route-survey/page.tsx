@@ -15,9 +15,9 @@ import { ConnectBand } from "@/components/logistics/ConnectBand";
 import { TopicTabs } from "@/components/logistics/TopicTabs";
 import { routeSurveyFaqs } from "@/data/faqs";
 import {
-  lbiIntro,
-  lbiKeyFeatures,
   odcTopicTabs,
+  routeSurveyIntro,
+  routeSurveyKeyFeatures,
   surveyObstructions,
   surveyOutputs,
   surveyPointFields,
@@ -30,7 +30,7 @@ export const metadata: Metadata = buildMetadata("route-survey");
 const trail = [
   { name: "Home", path: "/" },
   { name: "ODC Logistics", path: "/odc-logistics" },
-  { name: "LBI Route Survey", path: "/odc-logistics/route-survey" },
+  { name: "Route Survey Reports", path: "/odc-logistics/route-survey" },
 ];
 
 const stagger = (index: number) => ({ "--stagger-delay": `${index * 70}ms` }) as CSSProperties;
@@ -79,7 +79,7 @@ export default function RouteSurveyPage() {
               </span>
 
               <h1 className="mt-4 font-display text-[clamp(2.2rem,4.4vw,3.4rem)] font-bold leading-[1.03] tracking-[-0.035em] text-navy-800">
-                LBI Route Survey
+                Route Survey Reports
               </h1>
               <p className="mt-5 max-w-[52ch] text-[16.5px] leading-relaxed text-ink-soft">
                 A route is not surveyed from a map. It is driven end to end, and every bridge,
@@ -122,7 +122,7 @@ export default function RouteSurveyPage() {
               className="aspect-[2/1]"
             />
             <div>
-              {lbiIntro.map((paragraph) => (
+              {routeSurveyIntro.map((paragraph) => (
                 <p
                   key={paragraph.slice(0, 40)}
                   className="mt-4 text-[15.5px] leading-relaxed text-ink-soft [hyphens:auto] first:mt-0 sm:text-justify"
@@ -147,7 +147,7 @@ export default function RouteSurveyPage() {
           <div className="lg:col-span-7">
             <Reveal>
               <ul className="space-y-4">
-                {lbiKeyFeatures.map((feature, index) => (
+                {routeSurveyKeyFeatures.map((feature, index) => (
                   <li
                     key={feature.text.slice(0, 30)}
                     style={stagger(index)}
@@ -313,7 +313,7 @@ export default function RouteSurveyPage() {
         data={[
           breadcrumbSchema(trail),
           serviceSchema({
-            name: "LBI Route Survey",
+            name: "Route Survey Reports",
             description: pageSeo["route-survey"].description,
             path: "/odc-logistics/route-survey",
             serviceType: "Route survey and transport feasibility assessment",

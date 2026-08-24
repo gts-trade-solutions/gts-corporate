@@ -185,14 +185,14 @@ export default function OdcLogisticsPage() {
                   href="/odc-logistics/route-survey"
                   className="font-semibold text-navy-700 underline decoration-accent-600/40 underline-offset-2 transition-colors hover:text-accent-700 hover:decoration-accent-600"
                 >
-                  LBI Route Survey
+                  Route Survey Reports
                 </Link>{" "}
                 for how a route is recorded, and{" "}
                 <Link
                   href="/odc-logistics/reports"
                   className="font-semibold text-navy-700 underline decoration-accent-600/40 underline-offset-2 transition-colors hover:text-accent-700 hover:decoration-accent-600"
                 >
-                  LBI Reports
+                  Reports
                 </Link>{" "}
                 for what the deliverable contains.
               </p>

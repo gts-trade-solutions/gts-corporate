@@ -104,8 +104,8 @@ src/
     manufacturing/          Manufacturing
     consulting/             Consulting
     odc-logistics/          ODC Logistics & heavy-lift transport
-      route-survey/         LBI Route Survey
-      reports/              LBI Reports
+      route-survey/         Route Survey Reports
+      reports/              Reports
     contact/                Contact / RFQ
     privacy/                Privacy notice
     api/rfq/route.ts        Enquiry endpoint
@@ -289,7 +289,7 @@ first in the DOM and moved with `lg:order`, so the phone reading order is always
 → image), [TopicTabs](src/components/logistics/TopicTabs.tsx),
 [ReportFinder](src/components/logistics/ReportFinder.tsx) and
 [ConnectBand](src/components/logistics/ConnectBand.tsx). The section content is data in
-`odcSections`, `lbiIntro`, `lbiKeyFeatures` and `reportListings`.
+`odcSections`, `routeSurveyIntro`, `routeSurveyKeyFeatures` and `reportListings`.
 
 Two departures from the reference worth knowing. Body copy is justified as the reference sets
 it, but with `hyphens: auto` and only from `sm` up — justified text without hyphenation opens
@@ -367,7 +367,7 @@ markup renders identically without them.
 | [src/data/trade.ts](src/data/trade.ts) | Import & Export sections, vehicle categories, India partner module |
 | [src/data/parts.ts](src/data/parts.ts) | Component categories, priority product groups, buyer types |
 | [src/data/vehicle-models.ts](src/data/vehicle-models.ts) | The vehicle model schedule — model, OEM, type, markets and priority spare parts |
-| [src/data/logistics.ts](src/data/logistics.ts) | ODC scope and cargo types, the alternating page sections, LBI intro and key features, survey obstructions, report contents and the report catalogue |
+| [src/data/logistics.ts](src/data/logistics.ts) | ODC scope and cargo types, the alternating page sections, route survey intro and key features, survey obstructions, report contents and the report catalogue |
 | [src/data/blog.ts](src/data/blog.ts) | Blog posts, authored as typed blocks (no MDX, no CMS) |
 | [src/data/manufacturing.ts](src/data/manufacturing.ts) | Manufacturing scope and project stages |
 | [src/data/consulting.ts](src/data/consulting.ts) | Fire & safety, CV service, homologation blocks, regulatory note |

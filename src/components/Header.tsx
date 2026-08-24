@@ -63,7 +63,7 @@ function NavDropdown({
   /*
     Longest match wins. The overview page is repeated as the first child, and
     its href is a prefix of its siblings' — without this, /odc-logistics/reports
-    would light up both "ODC Logistics" and "LBI Reports". Prefix matching is
+    would light up both "ODC Logistics" and "Reports". Prefix matching is
     still what decides it, so /vehicle-models/swift correctly marks
     "Vehicle Models".
   */

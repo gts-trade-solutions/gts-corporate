@@ -10,7 +10,7 @@ export type PageKey =
   | "consulting"
   | "odc-logistics"
   | "route-survey"
-  | "lbi-reports"
+  | "route-survey-reports"
   | "blog"
   | "contact";
 
@@ -159,12 +159,12 @@ export const pageSeo: Record<PageKey, PageSeo> = {
   },
   "route-survey": {
     path: "/odc-logistics/route-survey",
-    title: "LBI Route Survey for ODC & Heavy-Lift Cargo | GTS Trade Solutions",
+    title: "Route Survey Reports for ODC & Heavy-Lift Cargo | GTS Trade Solutions",
     description:
       "Physical route surveys for over-dimensional cargo — every bridge, cable, junction and narrow section recorded with chainage, GPS coordinates and photographs.",
     keywords: [
       "route survey",
-      "LBI route survey",
+      "route survey reports",
       "ODC route survey",
       "heavy lift route survey",
       "transport feasibility study",
@@ -174,13 +174,13 @@ export const pageSeo: Record<PageKey, PageSeo> = {
       "GPS route survey India",
     ],
   },
-  "lbi-reports": {
+  "route-survey-reports": {
     path: "/odc-logistics/reports",
-    title: "LBI Route Survey Reports — Obstruction Schedule & Drawings | GTS",
+    title: "Route Survey Reports — Obstruction Schedule & Drawings | GTS",
     description:
       "Route survey reports for ODC movements: obstruction schedule with chainage, GPS and photographs, route map, GA drawing and required action per point, in Word, PDF and GPX.",
     keywords: [
-      "LBI reports",
+      "route survey reports",
       "route survey report",
       "ODC survey report format",
       "obstruction schedule",

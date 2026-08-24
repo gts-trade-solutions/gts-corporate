@@ -27,17 +27,17 @@ import {
   serviceSchema,
 } from "@/lib/structured-data";
 
-export const metadata: Metadata = buildMetadata("lbi-reports");
+export const metadata: Metadata = buildMetadata("route-survey-reports");
 
 const trail = [
   { name: "Home", path: "/" },
   { name: "ODC Logistics", path: "/odc-logistics" },
-  { name: "LBI Reports", path: "/odc-logistics/reports" },
+  { name: "Reports", path: "/odc-logistics/reports" },
 ];
 
 const stagger = (index: number) => ({ "--stagger-delay": `${index * 70}ms` }) as CSSProperties;
 
-export default function LbiReportsPage() {
+export default function ReportsPage() {
   return (
     <>
       {/* Centred hero on a light ground: badge, title, lead, two buttons. */}
@@ -76,12 +76,12 @@ export default function LbiReportsPage() {
             </span>
 
             <h1 className="mt-5 font-display text-[clamp(2.3rem,4.6vw,3.5rem)] font-bold leading-[1.02] tracking-[-0.035em] text-ink">
-              LBI Reports
+              Reports
             </h1>
             <p className="mx-auto mt-5 max-w-2xl text-pretty text-[17px] leading-relaxed text-ink-soft">
-              Location-Based Intelligence reports for ODC logistics, route survey, route
-              feasibility, port connectivity, corridor intelligence and heavy cargo movement
-              planning — produced against your route and your cargo envelope.
+              Route survey reports for ODC logistics, route feasibility, port connectivity,
+              corridor intelligence and heavy cargo movement planning — produced against your
+              route and your cargo envelope.
             </p>
 
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
@@ -257,15 +257,15 @@ export default function LbiReportsPage() {
         data={[
           breadcrumbSchema(trail),
           serviceSchema({
-            name: "LBI Route Survey Reports",
-            description: pageSeo["lbi-reports"].description,
+            name: "Route Survey Reports",
+            description: pageSeo["route-survey-reports"].description,
             path: "/odc-logistics/reports",
             serviceType: "Route survey reporting and transport documentation",
             offers: reportSections.map((section) => section.title),
           }),
           itemListSchema({
-            name: "LBI report types",
-            description: pageSeo["lbi-reports"].description,
+            name: "Report types",
+            description: pageSeo["route-survey-reports"].description,
             items: reportListings.map((report) => ({
               name: report.title,
               path: `/odc-logistics/reports#${report.id}`,
