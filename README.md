@@ -97,8 +97,15 @@ src/
     import-export/          Import & Export
     automotive-parts/       Automotive Parts (search + category chips)
       [category]/           8 pre-rendered component detail pages
+    vehicle-models/         Vehicle model schedule (filter by type × OEM + search)
+      [slug]/               62 pre-rendered model pages with the component picker
+    blog/                   Blog index
+      [slug]/               6 pre-rendered posts
     manufacturing/          Manufacturing
     consulting/             Consulting
+    odc-logistics/          ODC Logistics & heavy-lift transport
+      route-survey/         LBI Route Survey
+      reports/              LBI Reports
     contact/                Contact / RFQ
     privacy/                Privacy notice
     api/rfq/route.ts        Enquiry endpoint
@@ -107,11 +114,15 @@ src/
     icon.svg not-found.tsx
   components/               Header, Hero, PageHero, ServiceCard, ProductCategoryCard,
                             FeatureSplit, CTASection, FAQ, RFQForm, CategoryFilter,
-                            SectionNav, Reveal, Spotlight, ScrollProgress,
-                            FloatingActions, Footer, Icon, Logo, Analytics, JsonLd
+                            ModelFinder, PartsSelector, VehicleModelCard,
+                            PostBody, PostCard, SectionNav, Reveal, Spotlight,
+                            ScrollProgress, FloatingActions, Footer, Icon, Logo,
+                            Analytics, JsonLd
   data/                     All copy and taxonomy (see below)
   lib/                      seo.ts, structured-data.ts, rfq.ts, mailer.ts, rate-limit.ts
 ```
+
+Total: 94 prerendered pages plus the one dynamic route (`/api/rfq`).
 
 ---
 
@@ -131,6 +142,37 @@ a photograph is supplied, each slot renders generated scene artwork, so the site
 as it stands. To use a real photo: drop the file in `public/images/`, set `src` on the slot,
 update `alt`. Nothing else changes — `<Media>` switches to `next/image` automatically, and
 each slot carries a `brief` describing what the photograph should show.
+
+**Eleven slots now carry real photography**, all on the ODC Logistics pages. Five came from the
+client's RACE Innovations logistics pages; the six service photographs were supplied in the
+client's brief and extracted from that PDF. All were converted to WebP and are rendered through
+`next/image`, which serves AVIF/WebP at the right size per breakpoint. [MediaFigure](src/components/MediaFigure.tsx) wraps a slot with
+the scrim and the spec-sheet plate caption, which is what keeps a photograph reading as part of
+the technical system rather than as decoration.
+
+The five taken from the RACE site are another company's assets — fine within the same group,
+worth confirming if any came from a stock library. One of them showed RACE branding on the load
+and was dropped once the client supplied an unbranded equivalent (`odcTransportation`). Every
+slot has a `brief` noting what a GTS replacement should show.
+
+**The scrim is tuned, not guessed.** `MediaScrim` darkens only the band the text sits in and
+reaches transparent well before the far edge, so the photograph is untouched where nothing sits
+on it. It carries no flat overlay — an earlier version washed 15% navy across the whole image,
+which made every photograph look muddy. Two strengths: `soft` for a plate caption, the default
+for a page `H1`, which is larger and sits higher up the image.
+
+Measured worst-case contrast of white text against the *lightest* pixel behind it — not the
+average, which is what makes a caption fail in one bright corner:
+
+| | contrast | | | contrast |
+| --- | --- | --- | --- | --- |
+| ODC hero H1 | 5.60 | | Row 1 caption | 5.81 |
+| Home hero H1 | 5.33 | | Row 3 caption | 8.75 |
+| Full-bleed plate | 6.56 | | Home plates | 14.19 / 17.33 |
+
+AA needs 4.5, so the tightest has ~18% margin. If you lighten the scrim further, re-measure
+rather than eyeballing it: at one point in tuning these, two captions dropped to 3.77 and 4.14
+while still looking perfectly readable in a screenshot.
 
 Two kinds of artwork sit behind that:
 
@@ -167,6 +209,8 @@ pages look like an engineering firm rather than a template.
 | [Spotlight.tsx](src/components/Spotlight.tsx) | Cursor-tracked highlight on dark bands. Mouse-only; flat without a pointer. |
 | [FAQ.tsx](src/components/FAQ.tsx) | `<details>` accordion with an animated panel: opening grows the grid row, closing shrinks it before the attribute drops. |
 | [CategoryFilter.tsx](src/components/CategoryFilter.tsx) | Vehicle-type chips **plus live search** across every category name, summary and product line. Combines with the chips, reports "Showing N of 8", supports arrow-key movement between chips, and its empty state doubles as a conversion prompt. |
+| [ModelFinder.tsx](src/components/ModelFinder.tsx) | The same technique over two filter dimensions at once — vehicle type **and** OEM, each chip carrying its count — plus search across model name, segment, market and every part name. Reports "Showing N of 62". |
+| [PartsSelector.tsx](src/components/PartsSelector.tsx) | The component picker on a model page. Ticking parts builds the enquiry URL; with nothing selected the CTA is a disabled `<button>` rather than a dead link. Selections are ordered by the schedule, not by click order, so the enquiry reads the same way as the page. |
 | [PageTransition.tsx](src/components/PageTransition.tsx) | Fades client-side navigations in. Skipped on first render so LCP is never delayed. |
 | [CopyButton.tsx](src/components/CopyButton.tsx) | Copy-to-clipboard on phone numbers and the email address, with inline confirmation. |
 | `.stagger-item` / `.rule-draw` | CSS helpers that piggy-back on the nearest `[data-reveal]` so lists step in and accent rules draw themselves, with no extra JS. |
@@ -177,6 +221,33 @@ attribute the page writes onto each card, so the cards stay server-rendered and 
 product line remains in the HTML for crawlers. And when nothing matches, the empty state
 links to `/contact?enquiry=component-sourcing&product=<query>` — the RFQ form reads that
 `product` parameter and arrives pre-filled, so a failed search still becomes an enquiry.
+
+### The model → enquiry hand-off
+
+This is the one flow that spans several files, so it is worth reading before editing any of
+them. A buyer ticks components on a model page and arrives at the RFQ form with the selection
+already written up:
+
+1. [PartsSelector](src/components/PartsSelector.tsx) holds the ticked parts and calls
+   `enquiryHref(model, parts)` from [src/data/vehicle-models.ts](src/data/vehicle-models.ts).
+2. That builds `/contact?enquiry=component-sourcing&product=…&application=…&model=…&parts=…#rfq`.
+   `parts` is a comma-separated list; `model` is the slug, carried only so the form can link
+   back.
+3. [RFQForm](src/components/RFQForm.tsx) reads all four. `enquiry` selects the type, `product`
+   and `application` fill their fields, and `parts` becomes both the ticked summary panel above
+   the form and a drafted `message` the buyer can edit.
+
+Two details that are load-bearing:
+
+- **The seeded fields are keyed on the seed.** They are uncontrolled inputs, so `defaultValue`
+  only applies on mount. Without the `key`, arriving from a *second* model page during the same
+  client-side session would leave the first model's text in place. Nothing remounts while
+  someone is typing, because the query string is not changing.
+- **`model` is validated against a slug charset before it is used in a link.** It only ever
+  becomes an internal path, and a value that does not match simply renders no link.
+
+Adding another entry point to this flow means calling `enquiryHref` rather than assembling the
+query by hand — that keeps the parameter names in one place.
 
 **The RFQ form** shows a live completion meter and validates each field on blur, clearing
 the error again as soon as the correction is typed. Validation messages come from the
@@ -195,6 +266,76 @@ truth on the server.
    `ResizeObserver` and publishes its height there; `globals.css` declares the default so
    the server-rendered page is correct before JS runs. Hard-coding the offset instead
    leaves a gap where page content bleeds between the header and the nav.
+
+### The ODC Logistics pages follow a different layout
+
+The three pages under `/odc-logistics` deliberately do **not** use the site's standard
+`PageHero` + `SectionNav` + `Section` rhythm. They reproduce the layout of the client's RACE
+Innovations logistics pages, at the client's request, in GTS's palette and type:
+
+| Reference page | GTS page | Layout |
+| --- | --- | --- |
+| `/logistics` | `/odc-logistics` | Split hero — photo one side, dark panel with the service list and one accent CTA on the other; **eight** alternating image/text rows, one per service; the connect band |
+| `/intellect/lbi` | `/odc-logistics/route-survey` | Split hero — title left, photo right; topic strip; intro row; "Key **Features**" with bullets left and photo right |
+| `/lbi-reports` | `/odc-logistics/reports` | Centred hero with pill badge and two buttons; filter bar; report card grid |
+
+The eight service rows are one array — `odcSections` — so adding or reordering a service is a
+data edit. Each entry's `id` is both the row's anchor and the target of its entry in
+`odcServiceList`, which drives the hero list; keep the two in step or a hero link goes nowhere.
+
+The pieces live in [src/components/logistics/](src/components/logistics/):
+[AlternatingRow](src/components/logistics/AlternatingRow.tsx) (the zig-zag row — the image is
+first in the DOM and moved with `lg:order`, so the phone reading order is always heading → text
+→ image), [TopicTabs](src/components/logistics/TopicTabs.tsx),
+[ReportFinder](src/components/logistics/ReportFinder.tsx) and
+[ConnectBand](src/components/logistics/ConnectBand.tsx). The section content is data in
+`odcSections`, `lbiIntro`, `lbiKeyFeatures` and `reportListings`.
+
+Two departures from the reference worth knowing. Body copy is justified as the reference sets
+it, but with `hyphens: auto` and only from `sm` up — justified text without hyphenation opens
+rivers of whitespace, and at phone width it is unreadable either way. And the report cards carry
+**no price**: the reference sells fixed-price reports, whereas these are scoped per route, so
+the card says "Scoped per route" and the button requests a quote. Give a listing its own
+commercial fields to sell one off the shelf.
+
+### The nav dropdowns, and the header fit budget
+
+Two nav topics are dropdowns — see `primaryNav` in [src/data/site.ts](src/data/site.ts). Give an
+item a `children` array and it becomes one; `panelTitle` is the full topic name shown as the
+panel heading, while `label` is the shorter string the bar shows.
+
+Three things about [Header.tsx](src/components/Header.tsx) are load-bearing:
+
+1. **The trigger is a `<button>`, not a link.** On touch there is no hover, so a link would
+   navigate before the panel could open. That is why the overview page is repeated as the first
+   child — it is otherwise unreachable on a phone. It also matches the reference design.
+2. **Longest match wins for the child's active state.** The overview href is a prefix of its
+   siblings', so plain prefix matching lights up two items at once on `/odc-logistics/reports`.
+   The parent still uses prefix matching, which is what keeps *Vehicle Models* marked on
+   `/vehicle-models/<slug>`.
+3. **The panel has no gap above it** — the `pt-2` belongs to the panel, not the trigger — so the
+   pointer can travel from trigger to panel without crossing dead space and closing it.
+
+**The fit budget.** The header row is a fixed 70px with a logo, the nav and the CTA button, and
+the container caps at `max-w-7xl`, so *a wider viewport does not give the nav more room*. These
+are measured, not estimated:
+
+| | xl (1280–1535) | 2xl (1536+) |
+| --- | --- | --- |
+| Container inner width | 1216px | 1376px (header widens to `max-w-[1440px]`) |
+| Logo | 172px (descriptor hidden) | 289px |
+| Nav, 7 slots | 786px | 814px |
+| CTA button | 179px | 179px |
+| **Headroom** | **47px** | **46px** |
+
+Four changes bought that headroom, and removing any one puts labels back to wrapping: Home
+dropped from the desktop bar, item padding at `px-2`, the row gap tightened at `xl`, and the
+logo descriptor hidden in the xl–2xl band. Nav items carry `shrink-0 whitespace-nowrap`
+deliberately — if the budget is ever blown again the row will visibly overflow rather than
+silently wrap two labels onto two lines, which is how the problem hid the first time.
+
+**Before adding a ninth slot or a longer label, re-measure.** Roughly 47px is about four
+characters. Adding a topic almost certainly means nesting it under an existing dropdown instead.
 
 **The header must never change height on scroll.** It is a constant 70px, and this is
 load-bearing: it sits in normal flow, so animating its height reflows the entire page and
@@ -225,14 +366,38 @@ markup renders identically without them.
 | [src/data/home.ts](src/data/home.ts) | Home page sections and cards |
 | [src/data/trade.ts](src/data/trade.ts) | Import & Export sections, vehicle categories, India partner module |
 | [src/data/parts.ts](src/data/parts.ts) | Component categories, priority product groups, buyer types |
+| [src/data/vehicle-models.ts](src/data/vehicle-models.ts) | The vehicle model schedule — model, OEM, type, markets and priority spare parts |
+| [src/data/logistics.ts](src/data/logistics.ts) | ODC scope and cargo types, the alternating page sections, LBI intro and key features, survey obstructions, report contents and the report catalogue |
+| [src/data/blog.ts](src/data/blog.ts) | Blog posts, authored as typed blocks (no MDX, no CMS) |
 | [src/data/manufacturing.ts](src/data/manufacturing.ts) | Manufacturing scope and project stages |
 | [src/data/consulting.ts](src/data/consulting.ts) | Fire & safety, CV service, homologation blocks, regulatory note |
-| [src/data/faqs.ts](src/data/faqs.ts) | FAQs (also feed the FAQPage structured data) |
+| [src/data/faqs.ts](src/data/faqs.ts) | FAQs — 20 per service page plus 6 on Vehicle Models (also feed the FAQPage structured data) |
 | [src/data/enquiry.ts](src/data/enquiry.ts) | Enquiry types, conditional fields, upload rules |
 | [src/lib/seo.ts](src/lib/seo.ts) | Per-page title, meta description and keyword cluster |
 
 Adding a new component category is a matter of appending one object to `partCategories` —
 the chips, the cards, the structured data and the sitemap-adjacent copy all follow.
+
+The same holds for the two data-driven sections added after the MVP:
+
+- **A vehicle model** is one object appended to `vehicleModels`. Its page, its entry in the
+  filters and the OEM chips, its `Product` structured data, the coverage figures on the index
+  and its sitemap entry all derive from it. Slugs are written out rather than generated, so a
+  URL never changes because a model name was edited.
+- **A blog post** is one object appended to `blogPosts`, with its body as `heading` /
+  `paragraph` / `list` / `note` blocks. There is deliberately no markdown parser in the
+  bundle and no way for raw HTML to reach the page. Keep `publishedAt` as ISO `YYYY-MM-DD`;
+  it drives both the displayed date and `datePublished`.
+
+**The four service FAQ sets are client-supplied copy.** `tradeFaqs`, `partsFaqs`,
+`manufacturingFaqs` and `consultingFaqs` carry 20 questions each, mapped to the keyword
+clusters, and they are also the `FAQPage` structured data for their page — so editing one
+changes what search engines see. Edit them against the client's source document rather than
+rewriting in place. Each set is used in exactly one page (the accordion and the schema both
+read the same array), and the FAQ heading on each page prints `array.length`, so a count never
+goes stale. `modelFaqs` is ours, not client-supplied, and covers `/vehicle-models`.
+
+Questions must stay unique within a set — the accordion keys on the question text.
 
 Icons come from an inline set in [src/components/Icon.tsx](src/components/Icon.tsx); add a
 path there and reference it by name.
@@ -250,10 +415,11 @@ single edit, and nothing is invented in the meantime.
 2. **Public email address.** Deliberately blank. Set `NEXT_PUBLIC_CONTACT_EMAIL` and it
    appears in the header bar, footer, contact page and Organization JSON-LD.
 3. **WhatsApp number.** The floating button is off until `NEXT_PUBLIC_WHATSAPP_NUMBER` is set.
-4. **Photography.** The design carries itself on inline engineering blueprints (see
-   *Artwork* in §5), so nothing is missing. If real trade/automotive/manufacturing
-   photography is supplied, add it as WebP/AVIF via `next/image` as full-bleed section
-   imagery alongside the drawings. Do not substitute generic IT/cloud stock.
+4. **Photography.** The ODC Logistics pages carry four real photographs (see *Artwork* in §5);
+   every other slot still renders its generated scene artwork, so nothing is missing. Confirm
+   the licence on the four in use — they came from the RACE Innovations site, and one shows
+   RACE branding on the load. For the remaining slots, supply WebP/AVIF via `next/image` as
+   full-bleed section imagery alongside the drawings. Do not substitute generic IT/cloud stock.
 5. **Contact details.** Address and phone numbers are the ones published on the existing
    GTS reference page. Confirm or replace them in `src/data/site.ts`.
 6. **Privacy notice.** [src/app/privacy/page.tsx](src/app/privacy/page.tsx) is a factual
@@ -272,10 +438,18 @@ single edit, and nothing is invented in the meantime.
 - `sitemap.xml` and `robots.txt` generated from `NEXT_PUBLIC_SITE_URL`.
 - Open Graph and Twitter cards, backed by a generated 1200×630 branded image.
 - Structured data: `Organization` and `WebSite` site-wide; `Service` and `BreadcrumbList`
-  per page; `FAQPage` on Import & Export, Automotive Parts, Manufacturing and Consulting.
-- Internal linking: automotive parts → manufacturing → homologation → contact.
-- All content is server-rendered. The Automotive Parts filter only toggles visibility, so
-  every category stays in the HTML for crawlers and for users without JavaScript.
+  per page; `FAQPage` on Import & Export, Automotive Parts, Manufacturing and Consulting
+  (20 questions each), on the three ODC Logistics pages and on Vehicle Models; `ItemList` on
+  the Vehicle Models and Blog indexes; `Product` with an
+  `OfferCatalog` of parts on each model page; `Blog` plus `BlogPosting` on the blog.
+- Internal linking: automotive parts → vehicle models → manufacturing → homologation → contact,
+  with the blog linking into all of them.
+- Long-tail depth: 8 component category pages, 62 model pages (`<model> spare parts`) and 6
+  posts, none of which add a top-level navigation item.
+- All content is server-rendered. Both filters only toggle visibility, so every category, every
+  model and every part name stays in the HTML for crawlers and for users without JavaScript.
+  The `/vehicle-models` index is 684 KB of HTML but under 40 KB gzipped — the repetition
+  compresses away, so it ships lighter than the home page.
 
 Accessibility and performance: semantic headings, labelled form controls, keyboard-visible
 focus rings, a skip link, `<details>`-based FAQs that work without JavaScript, and no
@@ -337,6 +511,15 @@ recorded here so nobody "fixes" them by accident.
    header still carries **exactly six primary navigation items**, which is the actual
    acceptance criterion. The eight component detail pages sit *below* Automotive Parts as
    long-tail SEO depth and are reachable from the category cards, not from the nav.
+
+3. **The nav is no longer six flat items — it is eight slots, two of which are dropdowns.**
+   ODC Logistics & Route Survey and the Vehicle Models / Blog pair were added after the MVP.
+   Grouping them under dropdown parents is what keeps the bar to eight slots while covering
+   eleven destinations, and it follows the pattern the client asked for.
+
+   **Home is deliberately absent from the desktop bar.** The logo is the home link and carries
+   `aria-label="GTS Trade Solutions — home"`. Home is still the first item in the mobile menu.
+   This was not a style choice — see the fit budget in §5, which is why it had to go.
 
 Everything else — the compliance guardrails, the "support/coordinate/facilitate" wording,
 no invented certifications, clients or capacity — is unchanged and still enforced.

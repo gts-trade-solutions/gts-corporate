@@ -29,9 +29,14 @@ export function Logo({ inverted = false }: { inverted?: boolean }) {
         >
           Trade Solutions
         </span>
-        {/* Descriptor is dropped on the narrowest screens so the header row fits. */}
+        {/*
+          Descriptor is dropped on the narrowest screens, and again in the
+          xl–2xl band: that is where the eight-slot nav row is tightest, and the
+          descriptor is the widest part of the wordmark. It returns at 2xl,
+          where the header container widens and the room comes back.
+        */}
         <span
-          className={`mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.16em] sm:block ${
+          className={`mt-1 hidden text-[10px] font-semibold uppercase tracking-[0.16em] sm:block xl:hidden 2xl:block ${
             inverted ? "text-navy-100" : "text-ink-muted"
           }`}
         >

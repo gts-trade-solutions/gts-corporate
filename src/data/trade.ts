@@ -73,7 +73,7 @@ export const tradeSections: CategoryBlock[] = [
     title: "Vehicle Import & Export",
     icon: "truck",
     summary:
-      "Import and export of complete vehicles between markets, from single units to fleet and project quantities.",
+      "Import and export of complete vehicles and equipment between markets, from single units to fleet and project quantities.",
     items: [
       "Cars, SUVs and pick-ups",
       "Two-wheelers and three-wheelers",
@@ -81,6 +81,8 @@ export const tradeSections: CategoryBlock[] = [
       "Buses and coaches",
       "Electric vehicles",
       "Special-purpose vehicles",
+      "Agricultural equipment",
+      "Construction equipment",
     ],
   },
   {
@@ -169,6 +171,36 @@ export const vehicleCategories: CategoryBlock[] = [
       "Utility vehicles",
       "Mobile workshops",
       "Other project-based vehicles",
+    ],
+  },
+  {
+    id: "agricultural-equipment",
+    title: "Agricultural Equipment",
+    icon: "tractor",
+    summary:
+      "Tractors and farm machinery for agriculture, cultivation, harvesting and material-handling applications.",
+    items: [
+      "Tractors",
+      "Power tillers",
+      "Harvesters",
+      "Seeders & planters",
+      "Sprayers",
+      "Agricultural implements",
+    ],
+  },
+  {
+    id: "construction-equipment",
+    title: "Construction Equipment",
+    icon: "excavator",
+    summary:
+      "Heavy and compact equipment for construction, infrastructure, mining and material-handling applications.",
+    items: [
+      "Excavators",
+      "Backhoe loaders",
+      "Wheel loaders",
+      "Motor graders",
+      "Compactors",
+      "Skid-steer loaders",
     ],
   },
 ];

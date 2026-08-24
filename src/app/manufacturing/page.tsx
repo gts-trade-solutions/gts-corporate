@@ -120,7 +120,7 @@ export default function ManufacturingPage() {
                   eyebrow="Questions"
                   index={3}
                   title="Manufacturing FAQs"
-                  lead="What buyers usually want to confirm before sending a drawing."
+                  lead={`${manufacturingFaqs.length} questions on scope, process, prototyping and what buyers confirm before sending a drawing.`}
                 />
                 <p className="mt-6 text-[15px] leading-relaxed text-ink-soft">
                   Need the components that go into the build?{" "}

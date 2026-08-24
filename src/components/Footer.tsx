@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { Container } from "./Container";
 import { Logo } from "./Logo";
-import { contact, footerEnquiryLinks, primaryNav, site, telHref } from "@/data/site";
+import { contact, footerEnquiryLinks, navDestinations, site, telHref } from "@/data/site";
 
-const quickLinks = primaryNav.filter((item) => item.href !== "/");
+/* Every destination in the nav except Home — the logo already links there.
+   Flattened, so the pages inside a dropdown are reachable from the footer too. */
+const quickLinks = navDestinations.filter((item) => item.href !== "/");
 
 export function Footer() {
   return (

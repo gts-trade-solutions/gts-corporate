@@ -5,8 +5,13 @@ export type PageKey =
   | "home"
   | "import-export"
   | "automotive-parts"
+  | "vehicle-models"
   | "manufacturing"
   | "consulting"
+  | "odc-logistics"
+  | "route-survey"
+  | "lbi-reports"
+  | "blog"
   | "contact";
 
 type PageSeo = {
@@ -75,6 +80,29 @@ export const pageSeo: Record<PageKey, PageSeo> = {
       "agricultural machinery parts",
     ],
   },
+  "vehicle-models": {
+    path: "/vehicle-models",
+    title: "Vehicle Models & Spare Parts List | Car, Bike, 3W & Truck Parts | GTS",
+    description:
+      "Browse vehicle models by type and OEM, pick the spare parts you need for a specific model, and send the selection straight to our enquiry form.",
+    keywords: [
+      "vehicle spare parts by model",
+      "car spare parts list",
+      "motorcycle spare parts exporter",
+      "three wheeler spare parts",
+      "truck spare parts by model",
+      "Maruti Suzuki spare parts exporter",
+      "Bajaj spare parts exporter",
+      "TVS spare parts exporter",
+      "Royal Enfield spare parts exporter",
+      "Tata Motors spare parts exporter",
+      "Hyundai spare parts exporter",
+      "Nissan spare parts exporter",
+      "Mahindra pick-up spare parts",
+      "Indian vehicle spare parts Africa",
+      "spare parts exporter India",
+    ],
+  },
   manufacturing: {
     path: "/manufacturing",
     title: "Contract Manufacturing & Fabrication Services India | GTS",
@@ -109,6 +137,71 @@ export const pageSeo: Record<PageKey, PageSeo> = {
       "commercial vehicle service",
       "truck service",
       "bus maintenance",
+    ],
+  },
+  "odc-logistics": {
+    path: "/odc-logistics",
+    title: "ODC Logistics & Heavy-Lift Transport | Route Survey | GTS Trade Solutions",
+    description:
+      "Over-dimensional cargo logistics — transport engineering, route survey, movement planning, permit coordination and supervised execution for heavy-lift and project cargo.",
+    keywords: [
+      "ODC logistics",
+      "over dimensional cargo transport",
+      "heavy lift transport India",
+      "ODC cargo movement",
+      "project cargo logistics",
+      "transport engineering services",
+      "oversize load permit India",
+      "heavy haulage consultancy",
+      "hydraulic axle transport",
+      "multimodal project logistics",
+    ],
+  },
+  "route-survey": {
+    path: "/odc-logistics/route-survey",
+    title: "LBI Route Survey for ODC & Heavy-Lift Cargo | GTS Trade Solutions",
+    description:
+      "Physical route surveys for over-dimensional cargo — every bridge, cable, junction and narrow section recorded with chainage, GPS coordinates and photographs.",
+    keywords: [
+      "route survey",
+      "LBI route survey",
+      "ODC route survey",
+      "heavy lift route survey",
+      "transport feasibility study",
+      "bridge load assessment",
+      "obstruction survey",
+      "swept path analysis",
+      "GPS route survey India",
+    ],
+  },
+  "lbi-reports": {
+    path: "/odc-logistics/reports",
+    title: "LBI Route Survey Reports — Obstruction Schedule & Drawings | GTS",
+    description:
+      "Route survey reports for ODC movements: obstruction schedule with chainage, GPS and photographs, route map, GA drawing and required action per point, in Word, PDF and GPX.",
+    keywords: [
+      "LBI reports",
+      "route survey report",
+      "ODC survey report format",
+      "obstruction schedule",
+      "transport feasibility report",
+      "route survey deliverables",
+      "GA drawing transport",
+    ],
+  },
+  blog: {
+    path: "/blog",
+    title: "Trade & Automotive Insights | Export, Sourcing & Homologation | GTS",
+    description:
+      "Practical notes on vehicle export, spare-parts sourcing, homologation, trailer specification and India market entry — written for buyers, exporters and manufacturers.",
+    keywords: [
+      "vehicle export blog",
+      "automotive sourcing insights",
+      "spare parts export guide",
+      "vehicle homologation guide",
+      "India market entry automotive",
+      "trailer axle specification",
+      "EV component sourcing",
     ],
   },
   contact: {

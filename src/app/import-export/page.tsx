@@ -40,7 +40,7 @@ export default function ImportExportPage() {
       <PageHero
         eyebrow="Import & Export"
         title="Global Import & Export Solutions"
-        lead="GTS Trade Solutions handles import and export across general products, industrial goods, machinery and complete vehicles — and supports overseas brands that need a distribution or dealership route into India."
+        lead="GTS Trade Solutions handles import and export across general products, industrial goods, machinery, complete vehicles and agricultural and construction equipment — and supports overseas brands that need a distribution or dealership route into India."
         primaryCta={{ label: "Start an Import / Export Enquiry", href: "/contact?enquiry=import-product" }}
         secondaryCta={{ label: "Become a Supplier / Partner", href: "/contact?enquiry=supplier-partner" }}
         trail={trail}
@@ -78,7 +78,7 @@ export default function ImportExportPage() {
               eyebrow="Vehicle Trade"
               index={2}
               title="Complete vehicle import and export"
-              lead="From single units to fleet and project quantities, across passenger, commercial, electric and special-purpose segments."
+              lead="From single units to fleet and project quantities — across passenger, commercial, electric and special-purpose vehicles, and agricultural and construction equipment."
             />
           </Reveal>
           <Reveal>
@@ -93,10 +93,24 @@ export default function ImportExportPage() {
 
           <Reveal>
             <p className="mt-10 max-w-4xl rounded-sm border-l-[3px] border-accent-600 bg-white p-6 text-[15px] leading-relaxed text-ink-soft shadow-card">
-              <strong className="font-semibold text-ink">Please note:</strong> vehicle import and export
-              rules differ by destination country, vehicle age, emission standard and specification. Not
-              every vehicle can legally be imported into every market. We review the requirement for your
-              specific destination before a shipment is committed.
+              <strong className="font-semibold text-ink">Please note:</strong> vehicle and equipment
+              import and export rules differ by destination country, machine age, emission standard
+              and specification. Not every vehicle can legally be imported into every market. We
+              review the requirement for your specific destination before a shipment is committed.
+            </p>
+          </Reveal>
+
+          <Reveal>
+            <p className="mt-6 text-[15px] leading-relaxed text-ink-soft">
+              Need spare parts rather than complete units? The{" "}
+              <Link
+                href="/vehicle-models"
+                className="font-semibold text-navy-700 underline decoration-accent-600/40 underline-offset-2 transition-colors hover:text-accent-700 hover:decoration-accent-600"
+              >
+                vehicle model schedule
+              </Link>{" "}
+              lists the components most often requested for each model we export — select what you
+              need and it carries straight into an enquiry.
             </p>
           </Reveal>
         </Section>
@@ -164,7 +178,7 @@ export default function ImportExportPage() {
                   eyebrow="Questions"
                   index={4}
                   title="Import &amp; export FAQs"
-                  lead="Common questions from buyers, exporters and overseas manufacturers."
+                  lead={`${tradeFaqs.length} questions from buyers, exporters and overseas manufacturers — on vehicle and equipment export, sourcing from India, documentation and market coverage.`}
                 />
                 <div className="mt-8 rounded-sm border-l-[3px] border-navy-700 bg-steel-50 p-5 text-[14.5px] leading-relaxed text-ink-soft">
                   <strong className="block font-semibold text-ink">Regulatory note</strong>

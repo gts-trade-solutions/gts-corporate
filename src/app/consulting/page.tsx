@@ -100,7 +100,7 @@ export default function ConsultingPage() {
                   eyebrow="Questions"
                   index={4}
                   title="Consulting FAQs"
-                  lead="What manufacturers and fleet operators ask before starting a consulting engagement."
+                  lead={`${consultingFaqs.length} questions from manufacturers and fleet operators — on homologation, market entry, supplier development, service support and fire & safety.`}
                 />
                 <p className="mt-6 text-[15px] leading-relaxed text-ink-soft">
                   Consulting work usually connects back to{" "}

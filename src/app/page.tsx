@@ -1,5 +1,6 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
+import Link from "next/link";
 import { ArrowLink, ButtonLink } from "@/components/Button";
 import { CTASection } from "@/components/CTASection";
 import { FeatureSplit } from "@/components/FeatureSplit";
@@ -19,10 +20,13 @@ import {
   globalTrade,
   indiaPartner,
   manufacturingHighlight,
+  odcHighlight,
   vehicleTrade,
   whatWeDo,
   whyGts,
 } from "@/data/home";
+import { blogPostsByDate } from "@/data/blog";
+import { vehicleModelOems, vehicleModels } from "@/data/vehicle-models";
 import { buildMetadata, pageSeo } from "@/lib/seo";
 import { breadcrumbSchema, serviceSchema } from "@/lib/structured-data";
 
@@ -112,6 +116,17 @@ export default function HomePage() {
         </Reveal>
       </Section>
 
+      <Section tone="steel">
+        <Reveal>
+          <FeatureSplit
+            block={odcHighlight}
+            eyebrow="ODC Logistics & Route Survey"
+            index={6}
+            link={{ label: "Explore ODC logistics", href: "/odc-logistics" }}
+          />
+        </Reveal>
+      </Section>
+
       {/* Editorial image band — a visual break between the capability sections. */}
       <section className="bg-white pb-4">
         <Container>
@@ -119,7 +134,7 @@ export default function HomePage() {
             <div className="grid gap-4 lg:grid-cols-12">
               <figure className="relative col-span-full aspect-[16/10] overflow-hidden rounded-sm bg-navy-900 lg:col-span-7 lg:aspect-auto lg:min-h-[420px]">
                 <Media slot="homeTrade" sizes="(min-width: 1024px) 58vw, 100vw" />
-                <MediaScrim side="bottom" />
+                <MediaScrim side="bottom" strength="soft" />
                 <figcaption className="absolute inset-x-0 bottom-0 p-6 sm:p-7">
                   <span className="index-mark text-[11px] font-bold tracking-[0.2em] text-accent-500">
                     PLATE 01
@@ -133,7 +148,7 @@ export default function HomePage() {
               <div className="col-span-full grid gap-4 lg:col-span-5">
                 <figure className="relative aspect-[16/9] overflow-hidden rounded-sm bg-navy-900">
                   <Media slot="homeManufacturing" sizes="(min-width: 1024px) 40vw, 100vw" />
-                  <MediaScrim side="bottom" />
+                  <MediaScrim side="bottom" strength="soft" />
                   <figcaption className="absolute inset-x-0 bottom-0 p-6">
                     <span className="index-mark text-[11px] font-bold tracking-[0.2em] text-accent-500">
                       PLATE 02
@@ -168,7 +183,7 @@ export default function HomePage() {
               <div className="lg:col-span-5">
                 <span className="inline-flex items-center gap-2.5">
                   <span className="index-mark text-[11px] font-bold tabular-nums text-white/70">
-                    06
+                    07
                   </span>
                   <span className="rule-draw h-px w-7 bg-white" aria-hidden="true" />
                   <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-white">
@@ -217,7 +232,7 @@ export default function HomePage() {
           <FeatureSplit
             block={consultingHighlight}
             eyebrow="Consulting"
-            index={7}
+            index={8}
             link={{ label: "View consulting services", href: "/consulting" }}
           />
         </Reveal>
@@ -227,7 +242,7 @@ export default function HomePage() {
         <Reveal>
           <SectionHeading
             eyebrow="Why GTS"
-            index={8}
+            index={9}
             title="Built around what a technical buyer actually needs"
             lead="Sourcing is straightforward when the person on the other side understands the drawing, the application and the market it is going into."
           />
@@ -254,6 +269,67 @@ export default function HomePage() {
         <div className="mt-10">
           <ArrowLink href="/contact">Send us your requirement</ArrowLink>
         </div>
+      </Section>
+
+      {/* Two routes that sit outside the six primary tabs: parts by model, and
+          the blog. This is their main entry point for desktop visitors. */}
+      <Section tone="steel">
+        <Reveal>
+          <SectionHeading
+            eyebrow="Also On This Site"
+            index={10}
+            title="Two more ways in"
+            lead="Find spare parts by the vehicle you actually run, or read up on how an enquiry, a specification or a market entry is put together."
+          />
+        </Reveal>
+        <Reveal>
+          <div className="mt-11 grid gap-6 lg:grid-cols-2">
+            <div className="keyline group relative flex flex-col overflow-hidden rounded-sm border border-steel-200 bg-white p-7 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-navy-200 hover:shadow-lift">
+              <span className="flex h-12 w-12 items-center justify-center rounded-sm bg-navy-50 text-navy-700 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105 group-hover:bg-navy-800 group-hover:text-white">
+                <Icon name="car" className="h-[23px] w-[23px]" />
+              </span>
+              <h3 className="mt-5 text-[20px] font-bold text-ink transition-colors duration-200 group-hover:text-navy-800">
+                Spare parts by vehicle model
+              </h3>
+              <p className="mt-2.5 max-w-[52ch] text-[15.5px] leading-relaxed text-ink-soft">
+                {vehicleModels.length} models across {vehicleModelOems.length} OEMs — cars,
+                motorcycles, three-wheelers, trucks and bus chassis — each with the components most
+                often requested for it. Tick the parts you need and the selection carries into the
+                enquiry form.
+              </p>
+              <span className="mt-6 flex flex-1 items-end">
+                <ArrowLink href="/vehicle-models">Browse the model schedule</ArrowLink>
+              </span>
+            </div>
+
+            <div className="keyline group relative flex flex-col overflow-hidden rounded-sm border border-steel-200 bg-white p-7 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-navy-200 hover:shadow-lift">
+              <span className="flex h-12 w-12 items-center justify-center rounded-sm bg-navy-50 text-navy-700 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105 group-hover:bg-navy-800 group-hover:text-white">
+                <Icon name="article" className="h-[23px] w-[23px]" />
+              </span>
+              <h3 className="mt-5 text-[20px] font-bold text-ink transition-colors duration-200 group-hover:text-navy-800">
+                Trade &amp; automotive insights
+              </h3>
+              <ul className="mt-4 space-y-3 border-t border-steel-200 pt-4">
+                {blogPostsByDate.slice(0, 3).map((post) => (
+                  <li key={post.slug}>
+                    <Link
+                      href={`/blog/${post.slug}`}
+                      className="group/post block text-[15px] font-semibold leading-snug text-ink transition-colors duration-200 hover:text-accent-700"
+                    >
+                      {post.title}
+                      <span className="mt-1 block text-[12.5px] font-medium text-ink-muted">
+                        {post.category} · {post.readingMinutes} min read
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+              <span className="mt-6 flex flex-1 items-end">
+                <ArrowLink href="/blog">All articles</ArrowLink>
+              </span>
+            </div>
+          </div>
+        </Reveal>
       </Section>
 
       <CTASection

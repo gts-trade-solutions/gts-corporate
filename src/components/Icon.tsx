@@ -96,6 +96,53 @@ const paths = {
       <path d="M2.5 15v3" />
     </>
   ),
+  excavator: (
+    <>
+      {/* Tracked undercarriage */}
+      <rect x="2.5" y="15" width="11" height="4" rx="2" />
+      <path d="M5.5 17h5" />
+      {/* Cab */}
+      <path d="M6.5 15v-4.5h5V15" />
+      {/* Boom and arm */}
+      <path d="m11.5 11.5 5-3.5 1.5 4.5" />
+      {/* Bucket */}
+      <path d="M15.5 12.5h5.5l-.9 3.5h-3.7z" />
+    </>
+  ),
+  article: (
+    <>
+      <path d="M16.5 19.5H5A1.5 1.5 0 0 1 3.5 18V4.5h13V18a1.5 1.5 0 0 0 1.5 1.5 2 2 0 0 0 2-2V8h-3.5" />
+      <path d="M6.5 8h7M6.5 11.5h7M6.5 15h4.5" />
+    </>
+  ),
+  map: (
+    <>
+      <path d="M9.5 4.5 3.5 6.8v12.7l6-2.3 5 2.3 6-2.3V4.5l-6 2.3-5-2.3Z" />
+      <path d="M9.5 4.5v12.7M14.5 6.8v12.7" />
+    </>
+  ),
+  pin: (
+    <>
+      <path d="M12 21.2s6.8-5.5 6.8-10.7a6.8 6.8 0 1 0-13.6 0C5.2 15.7 12 21.2 12 21.2Z" />
+      <circle cx="12" cy="10.2" r="2.5" />
+    </>
+  ),
+  bridge: (
+    <>
+      <path d="M2.5 15.5h19M2.5 20h19" />
+      <path d="M3 15.5c0-4.4 4-8 9-8s9 3.6 9 8" />
+      <path d="M7.5 15.5V20M12 15.5V20M16.5 15.5V20" />
+    </>
+  ),
+  crane: (
+    <>
+      <path d="M3 20.5h18" />
+      <path d="M7 20.5V6h2.5v14.5" />
+      <path d="M7 6h12" />
+      <path d="M16 6v5" />
+      <path d="M13.5 11h5v3.5h-5z" />
+    </>
+  ),
   container: (
     <>
       <rect x="3" y="6" width="18" height="12" rx="1" />

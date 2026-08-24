@@ -148,6 +148,42 @@ export function RFQForm() {
   // The parts-page search sends its query through, so an unmatched component
   // arrives in the form already filled in.
   const productSeed = (searchParams.get("product") ?? "").slice(0, 200);
+  const applicationSeed = (searchParams.get("application") ?? "").slice(0, 160);
+
+  /*
+    A vehicle model page can hand over an exact component selection
+    (/contact?...&parts=Oil+filter,+Brake+pads). Those parts become a ticked
+    summary above the form and a drafted message inside it, so the buyer only
+    has to add their own details — see PartsSelector and enquiryHref in
+    src/data/vehicle-models.ts.
+  */
+  const partsSeed = (searchParams.get("parts") ?? "")
+    .split(",")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .slice(0, 40);
+
+  const messageSeed = partsSeed.length
+    ? [
+        `Requirement: ${productSeed || "spare parts"}.`,
+        "",
+        "Components required:",
+        ...partsSeed.map((part) => `- ${part}`),
+        "",
+        "Please confirm availability, lead time and pricing for the quantities noted above.",
+      ].join("\n")
+    : "";
+
+  // Only ever used as an internal path, and constrained to a slug charset.
+  const modelSlug = searchParams.get("model") ?? "";
+  const modelHref = /^[a-z0-9-]{1,80}$/.test(modelSlug) ? `/vehicle-models/${modelSlug}` : "";
+
+  /*
+    Seeded fields are uncontrolled, so a *new* deep link has to remount them for
+    its defaultValue to apply. Keying them on the seed does that, and nothing
+    remounts while someone is typing because the query string is not changing.
+  */
+  const seedKey = `${productSeed}|${applicationSeed}|${partsSeed.join(",")}`;
 
   // Captured on mount so the server can measure real form-fill time.
   const mountedAt = useRef(0);
@@ -177,8 +213,9 @@ export function RFQForm() {
 
   useEffect(() => {
     recomputeProgress();
-    // enquiryType changes swap conditional fields in and out.
-  }, [enquiryType]);
+    // enquiryType changes swap conditional fields in and out; a new seed
+    // remounts the pre-filled fields, which the meter has to count.
+  }, [enquiryType, seedKey]);
 
   const handleBlur = (event: React.FocusEvent<Control>) => {
     const el = event.target;
@@ -344,6 +381,52 @@ export function RFQForm() {
         </div>
       </div>
 
+      {/* Selection carried over from a vehicle model page. */}
+      {partsSeed.length > 0 ? (
+        <div className="mb-8 rounded-sm border-l-[3px] border-accent-600 bg-accent-50/60 p-5">
+          <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+            <span className="text-[11px] font-bold uppercase tracking-[0.16em] text-accent-700">
+              Components you selected
+            </span>
+            <span className="index-mark text-[12px] font-bold tabular-nums text-ink-soft">
+              {partsSeed.length} item{partsSeed.length === 1 ? "" : "s"}
+            </span>
+          </div>
+          {productSeed ? (
+            <p className="mt-2 text-[15px] font-bold text-ink">{productSeed}</p>
+          ) : null}
+          <ul className="mt-3 flex flex-wrap gap-2">
+            {partsSeed.map((part) => (
+              <li
+                key={part}
+                className="inline-flex items-center gap-1.5 rounded-sm border border-accent-100 bg-white px-2.5 py-1.5 text-[13px] font-medium text-ink"
+              >
+                <svg viewBox="0 0 16 16" className="h-3 w-3 shrink-0 text-accent-700" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M3 8.5 6.5 12 13 4.5" />
+                </svg>
+                {part}
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3.5 text-[13.5px] leading-relaxed text-ink-soft">
+            These are already written into the message below — edit it freely, then add your
+            quantities and contact details.
+            {modelHref ? (
+              <>
+                {" "}
+                <Link
+                  href={modelHref}
+                  className="font-semibold text-navy-700 underline underline-offset-2 transition-colors hover:text-accent-700"
+                >
+                  Change the selection
+                </Link>
+                .
+              </>
+            ) : null}
+          </p>
+        </div>
+      ) : null}
+
       {errors.form ? (
         <p
           role="alert"
@@ -428,7 +511,14 @@ export function RFQForm() {
           valid={valid.product}
           hint="e.g. trailer axles, EV traction motor, refrigerated body, steel coils"
         >
-          <input {...input("product")} type="text" required minLength={2} defaultValue={productSeed} />
+          <input
+            key={`product-${seedKey}`}
+            {...input("product")}
+            type="text"
+            required
+            minLength={2}
+            defaultValue={productSeed}
+          />
         </Field>
 
         <Field
@@ -449,7 +539,12 @@ export function RFQForm() {
             valid={valid.application}
             hint="e.g. 40T tipper, city bus, electric 3-wheeler, tractor"
           >
-            <input {...input("application")} type="text" />
+            <input
+              key={`application-${seedKey}`}
+              {...input("application")}
+              type="text"
+              defaultValue={applicationSeed}
+            />
           </Field>
         ) : null}
 
@@ -473,7 +568,14 @@ export function RFQForm() {
           className="sm:col-span-2"
           hint="Specifications, drawings available, timelines, target price or any commercial context."
         >
-          <textarea {...input("message")} rows={6} required minLength={20} />
+          <textarea
+            key={`message-${seedKey}`}
+            {...input("message")}
+            rows={messageSeed ? 10 : 6}
+            required
+            minLength={20}
+            defaultValue={messageSeed}
+          />
         </Field>
 
         <Field

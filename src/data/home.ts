@@ -117,6 +117,24 @@ export const manufacturingHighlight: CategoryBlock = {
   ],
 };
 
+export const odcHighlight: CategoryBlock = {
+  id: "odc-logistics",
+  title: "ODC Logistics & Route Survey",
+  icon: "crane",
+  summary:
+    "Over-dimensional and heavy-lift cargo movement — transport engineering, physical route survey, permit coordination and supervised execution.",
+  items: [
+    "Transport engineering and feasibility studies",
+    "Physical route survey with GPS and photographs",
+    "Bridge, culvert and clearance assessment",
+    "Trailer, hydraulic axle and prime-mover selection",
+    "Oversize and overweight permit coordination",
+    "Utility shutdown, escort and traffic-window planning",
+    "Multimodal, port and jetty interface planning",
+    "Route survey reports in Word, PDF and GPX",
+  ],
+};
+
 export const consultingHighlight: CategoryBlock = {
   id: "consulting",
   title: "Consulting",

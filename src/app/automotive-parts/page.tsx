@@ -1,6 +1,7 @@
 import type { CSSProperties } from "react";
 import type { Metadata } from "next";
 import Link from "next/link";
+import { ButtonLink } from "@/components/Button";
 import { CTASection } from "@/components/CTASection";
 import { CategoryFilter } from "@/components/CategoryFilter";
 import { AxleBlueprint } from "@/components/illustrations/AxleBlueprint";
@@ -12,8 +13,10 @@ import { ProductCategoryCard } from "@/components/ProductCategoryCard";
 import { Reveal } from "@/components/Reveal";
 import { Section, SectionHeading } from "@/components/Section";
 import { SectionNav } from "@/components/SectionNav";
+import { Spotlight } from "@/components/Spotlight";
 import { partsFaqs } from "@/data/faqs";
 import { buyerTypes, partCategories, priorityProductGroups } from "@/data/parts";
+import { vehicleModelGroups, vehicleModelOems, vehicleModels } from "@/data/vehicle-models";
 import { buildMetadata, pageSeo } from "@/lib/seo";
 import { breadcrumbSchema, faqSchema, serviceSchema } from "@/lib/structured-data";
 
@@ -26,6 +29,7 @@ const trail = [
 
 const navItems = [
   { id: "categories", label: "Vehicle Categories" },
+  { id: "by-model", label: "By Vehicle Model" },
   { id: "priority-products", label: "Priority Product Groups" },
   { id: "buyers", label: "Who We Supply" },
   { id: "faqs", label: "FAQs" },
@@ -86,11 +90,80 @@ export default function AutomotivePartsPage() {
           </Reveal>
         </Section>
 
+        {/* Route into the model schedule — the other way buyers look for parts:
+            by the vehicle they run, not by the component group. */}
+        <Spotlight className="bg-navy-800 bg-blueprint py-16 text-white sm:py-20">
+          <div id="by-model" className="mx-auto w-full max-w-7xl scroll-mt-40 px-5 sm:px-6 lg:px-8">
+            <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-12">
+              <div className="lg:col-span-7">
+                <Reveal>
+                  <span className="inline-flex items-center gap-2.5">
+                    <span className="index-mark text-[11px] font-bold tabular-nums text-white/55">
+                      02
+                    </span>
+                    <span className="rule-draw h-px w-7 bg-accent-500" aria-hidden="true" />
+                    <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent-500">
+                      By Vehicle Model
+                    </span>
+                  </span>
+                  <h2 className="mt-4 text-[28px] font-bold leading-tight tracking-[-0.025em] text-white sm:text-[36px]">
+                    Know the vehicle? Start from the model instead
+                  </h2>
+                  <p className="mt-4 max-w-[58ch] text-[16.5px] leading-relaxed text-navy-100">
+                    The model schedule lists {vehicleModels.length} vehicles across{" "}
+                    {vehicleModelOems.length} OEMs — cars, motorcycles, three-wheelers, trucks and
+                    bus chassis — each with the components most often requested for it. Tick the
+                    parts you need on a model page and the selection carries straight into the
+                    enquiry form.
+                  </p>
+                  <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                    <ButtonLink href="/vehicle-models" size="lg" withArrow>
+                      Browse vehicle models
+                    </ButtonLink>
+                    <ButtonLink
+                      href="/contact?enquiry=component-sourcing#rfq"
+                      variant="outlineLight"
+                      size="lg"
+                    >
+                      Send a parts schedule
+                    </ButtonLink>
+                  </div>
+                </Reveal>
+              </div>
+
+              <div className="lg:col-span-5">
+                <Reveal>
+                  <ul className="grid gap-3 sm:grid-cols-2">
+                    {vehicleModelGroups.map((group, index) => (
+                      <li
+                        key={group.id}
+                        style={stagger(index)}
+                        className="stagger-item group flex items-center gap-3 rounded-sm border border-white/15 bg-white/[0.04] px-4 py-3.5 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-0.5 hover:border-accent-600/50 hover:bg-white/[0.08]"
+                      >
+                        <Icon
+                          name={group.icon}
+                          className="h-[18px] w-[18px] shrink-0 text-accent-500 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110"
+                        />
+                        <span className="text-[14.5px] font-medium text-white">
+                          {group.shortTitle}
+                        </span>
+                        <span className="index-mark ml-auto text-[12px] font-bold tabular-nums text-white/55">
+                          {vehicleModels.filter((item) => item.group === group.id).length}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </Reveal>
+              </div>
+            </div>
+          </div>
+        </Spotlight>
+
         <Section tone="steel" id="priority-products">
           <Reveal>
             <SectionHeading
               eyebrow="Priority Product Groups"
-              index={2}
+              index={3}
               title="Component groups we are asked for most"
               lead="These move regularly across OEM, fleet, body-builder and aftermarket buyers. If your requirement sits outside the list, send it anyway — the sourcing route is the same."
             />
@@ -123,7 +196,7 @@ export default function AutomotivePartsPage() {
               <Reveal>
                 <SectionHeading
                   eyebrow="Who We Supply"
-                  index={3}
+                  index={4}
                   title="Buyer types we work with"
                   lead="From a single development sample to a scheduled annual volume, the commercial conversation is adjusted to who is buying and why."
                 />
@@ -170,9 +243,9 @@ export default function AutomotivePartsPage() {
               <Reveal>
                 <SectionHeading
                   eyebrow="Questions"
-                  index={4}
+                  index={5}
                   title="Component sourcing FAQs"
-                  lead="What buyers usually confirm before sending a drawing or part number."
+                  lead={`${partsFaqs.length} questions on what we source, how parts are identified, and what buyers confirm before sending a drawing or part number.`}
                 />
               </Reveal>
             </div>

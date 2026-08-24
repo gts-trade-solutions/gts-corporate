@@ -95,6 +95,90 @@ export function breadcrumbSchema(trail: { name: string; path: string }[]) {
   };
 }
 
+/** Ordered list of internal pages — used for the vehicle model and blog indexes. */
+export function itemListSchema(input: {
+  name: string;
+  description?: string;
+  items: { name: string; path: string }[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: input.name,
+    ...(input.description ? { description: input.description } : {}),
+    numberOfItems: input.items.length,
+    itemListElement: input.items.map((item, index) => ({
+      "@type": "ListItem",
+      position: index + 1,
+      name: item.name,
+      url: `${siteUrl}${item.path}`,
+    })),
+  };
+}
+
+/**
+ * A vehicle model page. `Product` with the parts as an OfferCatalog is the
+ * honest shape here: it says these components can be enquired about, without
+ * asserting price, stock or an OEM authorisation we do not claim.
+ */
+export function modelPartsSchema(input: {
+  name: string;
+  description: string;
+  path: string;
+  brand: string;
+  parts: string[];
+}) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    name: input.name,
+    description: input.description,
+    url: `${siteUrl}${input.path}`,
+    category: "Vehicle spare parts",
+    brand: { "@type": "Brand", name: input.brand },
+    ...(input.parts.length
+      ? {
+          hasOfferCatalog: {
+            "@type": "OfferCatalog",
+            name: `${input.name} — spare parts`,
+            itemListElement: input.parts.map((part) => ({
+              "@type": "Offer",
+              itemOffered: { "@type": "Product", name: `${input.name} ${part.toLowerCase()}` },
+              seller: { "@id": orgId },
+            })),
+          },
+        }
+      : {}),
+  };
+}
+
+/** A single blog post. */
+export function articleSchema(input: {
+  title: string;
+  description: string;
+  path: string;
+  datePublished: string;
+  dateModified?: string;
+  keywords?: string[];
+}) {
+  const url = `${siteUrl}${input.path}`;
+  return {
+    "@context": "https://schema.org",
+    "@type": "BlogPosting",
+    headline: input.title,
+    description: input.description,
+    url,
+    mainEntityOfPage: { "@type": "WebPage", "@id": url },
+    datePublished: input.datePublished,
+    dateModified: input.dateModified ?? input.datePublished,
+    author: { "@id": orgId },
+    publisher: { "@id": orgId },
+    image: `${siteUrl}/opengraph-image`,
+    inLanguage: "en",
+    ...(input.keywords?.length ? { keywords: input.keywords.join(", ") } : {}),
+  };
+}
+
 export function faqSchema(faqs: Faq[]) {
   return {
     "@context": "https://schema.org",

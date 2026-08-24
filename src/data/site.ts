@@ -90,15 +90,92 @@ export const contact = {
 /** Digits-only version of a phone number, for tel: links. */
 export const telHref = (phone: string) => `tel:${phone.replace(/[^\d+]/g, "")}`;
 
-/** Exactly six primary navigation items — see MVP acceptance criteria. */
-export const primaryNav = [
+export type NavChild = {
+  label: string;
+  href: string;
+  /** One line shown under the label in the dropdown panel. */
+  description: string;
+};
+
+export type NavItem = {
+  label: string;
+  href: string;
+  /**
+   * Turns the item into a dropdown. The parent label is a button rather than a
+   * link, so the overview page is repeated as the first child — otherwise it
+   * becomes unreachable on touch, where there is no hover to open the panel.
+   */
+  children?: NavChild[];
+  /** Full topic name, shown as the dropdown panel's heading. */
+  panelTitle?: string;
+};
+
+/**
+ * Primary navigation.
+ *
+ * Two of these are dropdowns, which is what keeps the bar at eight slots while
+ * covering eleven destinations. `label` is what the bar shows and is
+ * deliberately shorter than `panelTitle` — the full topic name would not fit
+ * the fixed 70px header at the xl breakpoint alongside the logo and the
+ * Request a Quote button. Measured, not guessed; see the note in the README
+ * before lengthening one.
+ */
+export const primaryNav: NavItem[] = [
   { label: "Home", href: "/" },
   { label: "Import & Export", href: "/import-export" },
   { label: "Automotive Parts", href: "/automotive-parts" },
   { label: "Manufacturing", href: "/manufacturing" },
   { label: "Consulting", href: "/consulting" },
+  {
+    label: "ODC Logistics",
+    href: "/odc-logistics",
+    panelTitle: "ODC Logistics & Route Survey",
+    children: [
+      {
+        label: "ODC Logistics",
+        href: "/odc-logistics",
+        description: "Over-dimensional and heavy-lift cargo movement, planned end to end.",
+      },
+      {
+        label: "LBI Route Survey",
+        href: "/odc-logistics/route-survey",
+        description: "Physical survey of the route, chainage by chainage, with GPS and photographs.",
+      },
+      {
+        label: "LBI Reports",
+        href: "/odc-logistics/reports",
+        description: "The survey deliverable — obstruction schedule, drawings and route map.",
+      },
+    ],
+  },
+  {
+    label: "Resources",
+    href: "/vehicle-models",
+    panelTitle: "Resources",
+    children: [
+      {
+        label: "Vehicle Models",
+        href: "/vehicle-models",
+        description: "Find spare parts by vehicle model and send the selection as an enquiry.",
+      },
+      {
+        label: "Blog",
+        href: "/blog",
+        description: "Working notes on export, sourcing, specification and market entry.",
+      },
+    ],
+  },
   { label: "Contact", href: "/contact" },
-] as const;
+];
+
+/** Every destination in the primary nav, flattened and de-duplicated. */
+export const navDestinations = [
+  ...new Map(
+    primaryNav
+      .flatMap((item) => (item.children ? item.children : [{ label: item.label, href: item.href }]))
+      .map((item) => [item.href, item]),
+  ).values(),
+];
 
 export const footerEnquiryLinks = [
   { label: "Request a Quote", href: "/contact" },
