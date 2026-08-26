@@ -127,6 +127,8 @@ export function modelPartsSchema(input: {
   path: string;
   brand: string;
   parts: string[];
+  /** Site-relative path to the model photograph. */
+  image?: string;
 }) {
   return {
     "@context": "https://schema.org",
@@ -136,6 +138,7 @@ export function modelPartsSchema(input: {
     url: `${siteUrl}${input.path}`,
     category: "Vehicle spare parts",
     brand: { "@type": "Brand", name: input.brand },
+    ...(input.image ? { image: `${siteUrl}${input.image}` } : {}),
     ...(input.parts.length
       ? {
           hasOfferCatalog: {

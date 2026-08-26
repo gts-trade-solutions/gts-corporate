@@ -98,7 +98,7 @@ src/
     automotive-parts/       Automotive Parts (search + category chips)
       [category]/           8 pre-rendered component detail pages
     vehicle-models/         Vehicle model schedule (filter by type × OEM + search)
-      [slug]/               62 pre-rendered model pages with the component picker
+      [slug]/               96 pre-rendered model pages with the component picker
     blog/                   Blog index
       [slug]/               6 pre-rendered posts
     manufacturing/          Manufacturing
@@ -122,7 +122,7 @@ src/
   lib/                      seo.ts, structured-data.ts, rfq.ts, mailer.ts, rate-limit.ts
 ```
 
-Total: 94 prerendered pages plus the one dynamic route (`/api/rfq`).
+Total: 128 prerendered pages plus the one dynamic route (`/api/rfq`).
 
 ---
 
@@ -154,6 +154,40 @@ The five taken from the RACE site are another company's assets — fine within t
 worth confirming if any came from a stock library. One of them showed RACE branding on the load
 and was dropped once the client supplied an unbranded equivalent (`odcTransportation`). Every
 slot has a `brief` noting what a GTS replacement should show.
+
+#### Model catalogue photography
+
+**The vehicle and component photographs are not `media.ts` slots.** They are addressed by slug,
+so there is nothing to declare — `vehicleImage(item)` resolves to
+`/images/vehicles/<slug>.webp` and every model in the schedule has one. The component photos
+resolve the same way through `componentImage(name)` against `/images/components/`.
+
+| | Count | Where | Weight |
+| --- | --- | --- | --- |
+| Vehicle photographs | 96, one per model | `public/images/vehicles/` | 2.6 MB total, ~28 KB each |
+| Component photographs | 10, shared by 4 grids | `public/images/components/` | 37 KB total |
+
+All are WebP on a white ground and rendered `object-contain`, never `cover` — these are cut-out
+product shots, and cropping them lops the ends off the longer trucks.
+
+They were extracted from the client's *GTS Vehicle Models & Components Catalogue*. Two things
+about that source are worth knowing before anyone tries to re-derive them:
+
+- **The catalogue's pages are screenshots.** Each of the 96 model pages is a single 1536×1024
+  raster of a rendered page — heading, spec strip, vehicle shot and component grid all baked
+  into one image. The vehicle photographs here were cropped out of that raster, so most are
+  ~700×430 native. Good enough for the card and the hero plate at 1×; they will not stand up
+  to a full-bleed treatment.
+- **18 pages carry a separate overlay image** drawn on top of the screenshot, because the base
+  page was a placeholder or carried a watermark. For those the overlay is the real photograph
+  and the crop underneath is wrong, so they are sourced from the overlay instead. Nine of them
+  are small — RE 4S Petrol (187×164) and the three TVS King three-wheelers are the worst — and
+  are deliberately not upscaled to fill the frame; they sit smaller on the canvas rather than
+  going mushy. **These nine are the ones to replace first** when OEM photography is available.
+
+Five images had a caption or a source-site watermark burned into the bottom edge (Swift, Jimny
+5-Door, S-Presso, Platina 100, HLX 150 5 Gear); those are trimmed off. If the client supplies a
+corrected catalogue, re-check those five before assuming the trim is still needed.
 
 **The scrim is tuned, not guessed.** `MediaScrim` darkens only the band the text sits in and
 reaches transparent well before the far edge, so the photograph is untouched where nothing sits
@@ -380,10 +414,15 @@ the chips, the cards, the structured data and the sitemap-adjacent copy all foll
 
 The same holds for the two data-driven sections added after the MVP:
 
-- **A vehicle model** is one object appended to `vehicleModels`. Its page, its entry in the
-  filters and the OEM chips, its `Product` structured data, the coverage figures on the index
-  and its sitemap entry all derive from it. Slugs are written out rather than generated, so a
-  URL never changes because a model name was edited.
+- **A vehicle model** is one object appended to `vehicleModels`, plus its photograph dropped at
+  `public/images/vehicles/<slug>.webp`. Its page, its entry in the filters and the OEM chips,
+  its `Product` structured data, the coverage figures on the index and its sitemap entry all
+  derive from the object. Slugs are written out rather than generated, so a URL never changes
+  because a model name was edited. `segment` and `parts` are transcribed from the client's
+  model catalogue — the vehicle type and the "Priority Spare Parts / Components" line, split on
+  its semicolons — so edit them against that document rather than rewriting in place;
+  `partsNote` carries the catalogue's body-type qualifier verbatim where there is one
+  (tippers, tractor heads, the Magnite turbo).
 - **A blog post** is one object appended to `blogPosts`, with its body as `heading` /
   `paragraph` / `list` / `note` blocks. There is deliberately no markdown parser in the
   bundle and no way for raw HTML to reach the page. Keep `publishedAt` as ISO `YYYY-MM-DD`;
@@ -415,17 +454,24 @@ single edit, and nothing is invented in the meantime.
 2. **Public email address.** Deliberately blank. Set `NEXT_PUBLIC_CONTACT_EMAIL` and it
    appears in the header bar, footer, contact page and Organization JSON-LD.
 3. **WhatsApp number.** The floating button is off until `NEXT_PUBLIC_WHATSAPP_NUMBER` is set.
-4. **Photography.** The ODC Logistics pages carry four real photographs (see *Artwork* in §5);
-   every other slot still renders its generated scene artwork, so nothing is missing. Confirm
-   the licence on the four in use — they came from the RACE Innovations site, and one shows
-   RACE branding on the load. For the remaining slots, supply WebP/AVIF via `next/image` as
-   full-bleed section imagery alongside the drawings. Do not substitute generic IT/cloud stock.
-5. **Contact details.** Address and phone numbers are the ones published on the existing
+4. **Photography.** The ODC Logistics pages carry real photographs and every other `media.ts`
+   slot still renders its generated scene artwork, so nothing is missing (see *Artwork* in §5).
+   Confirm the licence on the ones in use — they came from the RACE Innovations site, and one
+   showed RACE branding on the load. For the remaining slots, supply WebP/AVIF via `next/image`
+   as full-bleed section imagery alongside the drawings. Do not substitute generic IT/cloud stock.
+5. **Model catalogue photographs.** The 96 vehicle shots came out of the client's catalogue,
+   whose model pages are screenshots — so they are ~700×430 native at best, and nine are
+   materially smaller (listed in §5). They carry no visible source attribution, but they are
+   OEM product photography that reached us second-hand: **confirm the client has the right to
+   publish them** before launch, and replace the nine small ones from OEM or authorised
+   distributor material. The component photographs are stock-style part shots from the same
+   document and want the same check.
+6. **Contact details.** Address and phone numbers are the ones published on the existing
    GTS reference page. Confirm or replace them in `src/data/site.ts`.
-6. **Privacy notice.** [src/app/privacy/page.tsx](src/app/privacy/page.tsx) is a factual
+7. **Privacy notice.** [src/app/privacy/page.tsx](src/app/privacy/page.tsx) is a factual
    starting point covering what the form actually does. Have it reviewed against your
    retention policy and applicable law before launch.
-7. **Keyword validation.** The clusters in `src/lib/seo.ts` come from the brief. Validate
+8. **Keyword validation.** The clusters in `src/lib/seo.ts` come from the brief. Validate
    volumes in Google Ads Keyword Planner / Search Console before final launch.
 
 ---

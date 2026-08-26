@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import { notFound } from "next/navigation";
 import { ArrowLink } from "@/components/Button";
 import { CTASection } from "@/components/CTASection";
@@ -9,12 +10,15 @@ import { PartsSelector } from "@/components/PartsSelector";
 import { Reveal } from "@/components/Reveal";
 import { Section, SectionHeading } from "@/components/Section";
 import { VehicleModelCard } from "@/components/VehicleModelCard";
-import { AxleBlueprint } from "@/components/illustrations/AxleBlueprint";
 import { siteUrl } from "@/data/site";
 import {
+  componentImage,
+  componentSets,
   enquiryHref,
   findVehicleModel,
   modelName,
+  vehicleImage,
+  vehicleImageAlt,
   vehicleModelGroup,
   vehicleModels,
 } from "@/data/vehicle-models";
@@ -109,7 +113,20 @@ export default async function VehicleModelPage({ params }: Props) {
         primaryCta={{ label: "Select components", href: "#select-parts" }}
         secondaryCta={{ label: "All vehicle models", href: "/vehicle-models" }}
         trail={trail}
-        art={<AxleBlueprint className="w-full" />}
+        art={
+          /* The catalogue photograph, on its own white plate so the cut-out
+             shot reads against the blueprint ground rather than bleeding into it. */
+          <div className="relative aspect-[3/2] w-full overflow-hidden rounded-sm border border-white/15 bg-white shadow-lift">
+            <Image
+              src={vehicleImage(item)}
+              alt={vehicleImageAlt(item)}
+              fill
+              priority
+              sizes="(min-width: 1024px) 480px, 92vw"
+              className="object-contain p-4"
+            />
+          </div>
+        }
         artLabel={`FIG. 03 — ${item.model.toUpperCase()}`}
       />
 
@@ -238,15 +255,58 @@ export default async function VehicleModelPage({ params }: Props) {
                 ))}
               </ul>
             </Reveal>
+
+            {item.partsNote ? (
+              <Reveal>
+                <p className="mt-5 rounded-sm border-l-[3px] border-accent-600 bg-white px-5 py-4 text-[14.5px] leading-relaxed text-ink-soft">
+                  {item.partsNote}
+                </p>
+              </Reveal>
+            ) : null}
           </div>
         </div>
       </Section>
 
+      {/* The component photo grid the catalogue prints beside this model. */}
       <Section>
         <Reveal>
           <SectionHeading
-            eyebrow="Related"
+            eyebrow="Component Photographs"
             index={3}
+            title={`What the ${item.model} part groups look like`}
+            lead="Representative photographs of each component group, as printed in the model catalogue. They show the kind of part, not the exact part that ships — fitment is confirmed against your VIN or chassis number, model year and engine specification when the enquiry is quoted."
+          />
+        </Reveal>
+        <Reveal>
+          <ul className="mt-10 grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4">
+            {componentSets[item.components].map((photo) => (
+              <li
+                key={photo.label}
+                className="group overflow-hidden rounded-sm border border-steel-200 bg-white transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:shadow-lift"
+              >
+                <div className="relative aspect-square bg-white">
+                  <Image
+                    src={componentImage(photo.image)}
+                    alt={photo.alt}
+                    fill
+                    sizes="(min-width: 1024px) 260px, (min-width: 640px) 30vw, 45vw"
+                    className="object-contain p-3 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+                  />
+                </div>
+                <p className="border-t border-steel-200 px-4 py-3 text-center text-[13.5px] font-semibold text-ink">
+                  {photo.label}
+                </p>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+      </Section>
+
+      <Section tone="steel">
+        <Reveal>
+          <SectionHeading
+            eyebrow="Related"
+            index={4}
             title="Other models in the schedule"
             lead="Most parts programmes cover more than one model. Consolidating them into one shipment is part of the sourcing work."
           />
@@ -280,6 +340,7 @@ export default async function VehicleModelPage({ params }: Props) {
             path: `/vehicle-models/${slug}`,
             brand: item.oem,
             parts: item.parts,
+            image: vehicleImage(item),
           }),
         ]}
       />
