@@ -18,6 +18,10 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   images: {
     formats: ["image/avif", "image/webp"],
+    // 75 is the default for everything; 85 is requested only by the
+    // full-width banners (see `Media`'s `quality` prop), where the default
+    // compression was visible across a 1920px-wide photograph.
+    qualities: [75, 85],
   },
 };
 

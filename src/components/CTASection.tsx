@@ -3,7 +3,7 @@ import { Container } from "./Container";
 import { Eyebrow } from "./Section";
 import { Reveal } from "./Reveal";
 import { Spotlight } from "./Spotlight";
-import { contact, telHref } from "@/data/site";
+import { primaryContactAction } from "@/data/site";
 
 /** Conversion band reused at the foot of every page. */
 export function CTASection({
@@ -19,17 +19,19 @@ export function CTASection({
   primaryCta?: { label: string; href: string };
   secondaryCta?: { label: string; href: string };
 }) {
+  const talk = primaryContactAction();
+
   return (
     <Spotlight className="bg-navy-800 bg-blueprint text-white">
-      <Container className="py-14 sm:py-16 lg:py-20">
+      <Container className="py-11 sm:py-14 lg:py-20">
         <Reveal>
-          <div className="grid gap-10 lg:grid-cols-12 lg:items-center lg:gap-12">
+          <div className="grid gap-7 sm:gap-10 lg:grid-cols-12 lg:items-center lg:gap-12">
             <div className="lg:col-span-7">
               <Eyebrow inverted>{eyebrow}</Eyebrow>
-              <h2 className="mt-4 text-3xl font-bold leading-tight text-white sm:text-[38px]">
+              <h2 className="mt-3 text-[26px] font-bold leading-tight text-white sm:mt-4 sm:text-[34px] lg:text-[38px]">
                 {title}
               </h2>
-              <p className="mt-4 max-w-2xl text-[17px] leading-relaxed text-navy-100">{lead}</p>
+              <p className="mt-3 max-w-2xl text-[15.5px] leading-relaxed text-navy-100 sm:mt-4 sm:text-[17px]">{lead}</p>
             </div>
 
             <div className="lg:col-span-5">
@@ -51,13 +53,17 @@ export function CTASection({
                   {secondaryCta.label}
                 </ButtonLink>
               </div>
+              {/* Was a phone number. WhatsApp is the staffed channel now, and
+                  the helper falls back to email or the form when no number is
+                  configured, so this line can never become a dead link. */}
               <p className="mt-5 text-[14px] text-navy-100">
                 Prefer to talk?{" "}
                 <a
-                  href={telHref(contact.phones[0])}
+                  href={talk.href}
+                  {...(talk.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
                   className="font-semibold text-white underline decoration-accent-500 underline-offset-4 transition-colors duration-200 hover:text-accent-500"
                 >
-                  {contact.phones[0]}
+                  {talk.label}
                 </a>
               </p>
             </div>

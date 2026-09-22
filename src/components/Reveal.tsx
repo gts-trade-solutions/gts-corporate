@@ -25,7 +25,14 @@ function getObserver() {
         observer?.unobserve(entry.target);
       }
     },
-    { rootMargin: "0px 0px -12% 0px", threshold: 0.05 },
+    /*
+      threshold stays 0. A fractional threshold is a share of the *element*, so
+      a block taller than the observer root can never intersect enough of itself
+      to fire and stays hidden forever — which is exactly what the ~20,000px
+      model grid on /vehicle-models did. 0 fires on the first pixel, which is
+      all a scroll reveal ever needs.
+    */
+    { rootMargin: "0px 0px -12% 0px", threshold: 0 },
   );
   return observer;
 }

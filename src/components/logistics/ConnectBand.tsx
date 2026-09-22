@@ -15,7 +15,7 @@ export function ConnectBand({
   cta?: { label: string; href: string };
 }) {
   return (
-    <section className="bg-white py-14 sm:py-16">
+    <section className="bg-white py-10 sm:py-14 lg:py-16">
       <Container>
         <div className="bg-grain flex flex-col gap-5 rounded-sm bg-navy-900 px-6 py-6 sm:px-8 md:flex-row md:items-center md:justify-between md:gap-8">
           <h2 className="font-display text-[20px] font-bold leading-snug text-white sm:text-[24px]">

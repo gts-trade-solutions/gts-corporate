@@ -12,22 +12,36 @@ const buckets = new Map<string, Bucket>();
 const WINDOW_MS = 10 * 60 * 1000;
 const MAX_REQUESTS = 5;
 
-export function rateLimit(key: string) {
+export type RateLimitOptions = {
+  /** Requests allowed inside the window. Defaults to the RFQ limit of 5. */
+  max?: number;
+  /** Window length in milliseconds. Defaults to 10 minutes. */
+  windowMs?: number;
+  /**
+   * Separates one endpoint's buckets from another's, so a visitor who has used
+   * up the assistant's allowance can still submit an enquiry.
+   */
+  scope?: string;
+};
+
+export function rateLimit(key: string, options: RateLimitOptions = {}) {
+  const { max = MAX_REQUESTS, windowMs = WINDOW_MS, scope = "rfq" } = options;
   const now = Date.now();
+  const bucketKey = `${scope}:${key}`;
 
   // Opportunistic cleanup so the map cannot grow without bound.
   if (buckets.size > 5000) {
     for (const [k, v] of buckets) if (v.resetAt <= now) buckets.delete(k);
   }
 
-  const bucket = buckets.get(key);
+  const bucket = buckets.get(bucketKey);
   if (!bucket || bucket.resetAt <= now) {
-    buckets.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    buckets.set(bucketKey, { count: 1, resetAt: now + windowMs });
     return { allowed: true, retryAfterSeconds: 0 };
   }
 
   bucket.count += 1;
-  if (bucket.count > MAX_REQUESTS) {
+  if (bucket.count > max) {
     return {
       allowed: false,
       retryAfterSeconds: Math.max(1, Math.ceil((bucket.resetAt - now) / 1000)),

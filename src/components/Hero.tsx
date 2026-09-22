@@ -1,18 +1,12 @@
 import type { CSSProperties } from "react";
 import { ButtonLink } from "./Button";
 import { Container } from "./Container";
-import { Icon, type IconName } from "./Icon";
+import { HeroSlider } from "./HeroSlider";
 import { Media, MediaScrim } from "./Media";
+import { heroSlides } from "@/data/hero-slides";
 import { heroCopy } from "@/data/home";
 
-const capabilities: { label: string; detail: string; icon: IconName }[] = [
-  { label: "Global Trade", detail: "Food, cosmetics, steel, raw materials, machinery", icon: "globe" },
-  { label: "Vehicle Trade", detail: "Cars, 2W, 3W, trucks, buses, EVs, special-purpose", icon: "truck" },
-  { label: "Components", detail: "Axles, tyres, rims, suspension, brakes, EV systems", icon: "gear" },
-  { label: "Manufacturing", detail: "Fabrication, trailers, containers, reefers, bodies", icon: "factory" },
-];
-
-/** Decorative capability ticker beneath the hero. */
+/** Decorative capability ticker beneath the banner. */
 const tickerTerms = [
   "Trailer axles",
   "Air suspension",
@@ -28,82 +22,91 @@ const tickerTerms = [
 
 const delay = (ms: number) => ({ "--hero-delay": `${ms}ms` }) as CSSProperties;
 
+/** The selector strip beneath the banner doubles as the capability strip. */
+const sliderLabels = heroSlides.map((slide) => ({
+  label: slide.label,
+  detail: slide.detail,
+  icon: slide.icon,
+}));
+
+/**
+ * One banner slide.
+ *
+ * Every slide heading is an h2. The page's h1 is rendered once, outside the
+ * carousel — see the note on it below. Four rotating h1 elements would give the
+ * page four competing top-level headings, and which one a crawler saw would
+ * depend on which slide happened to be showing.
+ */
+function Slide({ slide, first }: { slide: (typeof heroSlides)[number]; first: boolean }) {
+  const Heading = "h2";
+
+  return (
+    <div className="relative h-full">
+      <Media slot={slide.slot} priority={first} sizes="100vw" quality={85} />
+      <MediaScrim side="left" />
+      {/* The grid stays behind the headline and fades out before the part of
+          the photograph nothing sits on. No film grain here: it is for flat
+          navy panels, and over a photograph it reads as blur. */}
+      <div
+        className="pointer-events-none absolute inset-0 bg-blueprint opacity-40 [mask-image:linear-gradient(90deg,black,transparent_60%)]"
+        aria-hidden="true"
+      />
+
+      <Container className="relative flex h-full flex-col justify-center py-8">
+        <span className="inline-flex items-center gap-2.5">
+          <span className="h-px w-7 bg-accent-500" aria-hidden="true" />
+          <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent-500">
+            {slide.label}
+          </span>
+        </span>
+
+        <Heading className="mt-5 max-w-4xl text-[clamp(2.1rem,min(5.2vw,7vh),4rem)] font-bold leading-[1] tracking-[-0.04em] text-white">
+          {slide.title}
+        </Heading>
+
+        {/* Hidden on short screens so the banner never needs scrolling. */}
+        <p className="mt-5 max-w-2xl text-pretty text-[17px] leading-relaxed text-navy-100 [@media(max-height:700px)]:hidden">
+          {slide.lead}
+        </p>
+
+        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+          <ButtonLink href={`/contact?enquiry=${slide.enquiry}`} size="lg" withArrow>
+            Request a Quote
+          </ButtonLink>
+          <ButtonLink href={slide.href} variant="outlineLight" size="lg">
+            {slide.cta}
+          </ButtonLink>
+        </div>
+      </Container>
+    </div>
+  );
+}
+
 export function Hero() {
   return (
     /*
       The banner occupies exactly one viewport: 100svh minus the sticky header.
       svh (not vh/dvh) so mobile browser chrome can never push it into a scroll,
       and min-h keeps it usable if the window is very short.
+
+      The ticker sits outside the slider, so it does not rotate with the slides.
     */
-    <section className="relative isolate flex h-[calc(100svh-var(--header-h))] min-h-[460px] flex-col overflow-hidden bg-navy-900 text-white">
-      {/* Full-bleed imagery behind everything. */}
-      <Media slot="homeHero" priority sizes="100vw" />
-      <MediaScrim side="left" />
-      <div className="pointer-events-none absolute inset-0 bg-blueprint opacity-40" aria-hidden="true" />
-      <div className="pointer-events-none absolute inset-0 bg-grain" aria-hidden="true" />
+    <section className="relative isolate flex h-[calc(100svh-var(--header-h))] min-h-[520px] flex-col overflow-hidden bg-navy-900 text-white">
+      {/*
+        The page's one h1, rendered outside the carousel and visually hidden.
 
-      <Container className="relative flex flex-1 flex-col overflow-hidden">
-        <div className="flex flex-1 flex-col justify-center py-8">
-          <span className="hero-in inline-flex items-center gap-2.5" style={delay(0)}>
-            <span className="h-px w-7 bg-accent-500" aria-hidden="true" />
-            <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-accent-500">
-              {heroCopy.eyebrow}
-            </span>
-          </span>
+        The banner rotates, so no slide can own the h1 without the page's
+        top-level heading depending on timing. This keeps the keyword-led
+        heading the SEO brief specifies constant and first in the document,
+        while the visible headings are the slide titles beneath it.
+      */}
+      <h1 className="sr-only">{heroCopy.h1}</h1>
 
-          {/* H1 and lead intentionally un-animated so they paint immediately. */}
-          <h1 className="mt-5 text-[clamp(2.1rem,min(5.6vw,7.4vh),4.4rem)] font-bold leading-[0.98] tracking-[-0.04em] text-white">
-            {heroCopy.h1}
-          </h1>
-
-          {/* Hidden on short screens so the banner never needs scrolling. */}
-          <p className="mt-6 max-w-2xl text-pretty text-[17px] leading-relaxed text-navy-100 [@media(max-height:700px)]:hidden">
-            {heroCopy.lead}
-          </p>
-
-          <div
-            className="hero-in mt-7 flex flex-col gap-3 sm:flex-row sm:items-center"
-            style={delay(200)}
-          >
-            <ButtonLink href="/contact" size="lg" withArrow>
-              Request a Quote
-            </ButtonLink>
-            <ButtonLink href="#what-we-do" variant="outlineLight" size="lg">
-              Explore Services
-            </ButtonLink>
-          </div>
-        </div>
-
-        {/* Capability strip sits on the hero, over the scrim. */}
-        <div
-          /* Dropped on very short screens so the banner never needs scrolling; the
-             same four capabilities lead the section immediately below. */
-          className="hero-in grid shrink-0 grid-cols-2 border-t border-white/15 lg:grid-cols-4 lg:divide-x lg:divide-white/15 [@media(max-height:700px)]:hidden"
-          style={delay(320)}
-        >
-          {capabilities.map((item) => (
-            <div
-              key={item.label}
-              className="group relative py-5 transition-colors duration-300 lg:px-7 lg:first:pl-0 lg:last:pr-0 [@media(max-height:820px)]:py-4"
-            >
-              <span
-                className="absolute inset-x-0 top-0 h-px origin-left scale-x-0 bg-accent-600 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-x-100"
-                aria-hidden="true"
-              />
-              <Icon
-                name={item.icon}
-                className="h-5 w-5 text-accent-500 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-110"
-              />
-              <span className="mt-3 block font-display text-[15px] font-bold text-white">
-                {item.label}
-              </span>
-              <span className="mt-1.5 block text-[13.5px] leading-relaxed text-navy-100 max-sm:hidden [@media(max-height:820px)]:hidden">
-                {item.detail}
-              </span>
-            </div>
-          ))}
-        </div>
-      </Container>
+      <HeroSlider labels={sliderLabels}>
+        {heroSlides.map((slide, index) => (
+          <Slide key={slide.label} slide={slide} first={index === 0} />
+        ))}
+      </HeroSlider>
 
       {/* Capability ticker */}
       <div

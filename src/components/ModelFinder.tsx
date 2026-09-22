@@ -7,36 +7,63 @@ import { Icon } from "./Icon";
 
 export type FinderOption = { id: string; title: string; count?: number };
 
+/** Cards per page. Divides evenly into the 1, 2 and 3 column grid below. */
+const DEFAULT_PAGE_SIZE = 24;
+
 /**
- * Two-dimensional filter (vehicle type × OEM) plus live search for the vehicle
- * model schedule.
+ * Two-dimensional filter (vehicle type × OEM) plus live search and pagination
+ * for the vehicle model schedule.
  *
  * Same contract as CategoryFilter: the cards are server-rendered and passed in
  * as children, so every model name and every part name stays in the HTML for
- * crawlers and for users without JavaScript. Filtering only toggles
- * visibility — it never rewrites content. Each card must carry
+ * crawlers and for users without JavaScript. Filtering and paging only toggle
+ * visibility — they never rewrite content. Each card must carry
  * `data-model`, `data-group`, `data-oem` and a pre-lowercased `data-search`.
+ *
+ * Paging is therefore client-only, with no `?page=` in the URL. Every card is
+ * in the HTML whichever page you are on, so URL-addressable pages would be
+ * byte-identical duplicates of /vehicle-models; it also keeps paging
+ * consistent with the filters, which are not URL-synced either. The win is
+ * scannability — the document is the same weight as before.
  */
 export function ModelFinder({
   groups,
   oems,
   total,
+  pageSize = DEFAULT_PAGE_SIZE,
   children,
 }: {
   groups: FinderOption[];
   oems: FinderOption[];
   total: number;
+  pageSize?: number;
   children: ReactNode;
 }) {
   const [group, setGroup] = useState("all");
   const [oem, setOem] = useState("all");
   const [query, setQuery] = useState("");
-  const [visibleCount, setVisibleCount] = useState(total);
+  const [page, setPage] = useState(1);
+  const [matchCount, setMatchCount] = useState(total);
   const gridRef = useRef<HTMLDivElement>(null);
   const timers = useRef<number[]>([]);
 
   const trimmed = query.trim().toLowerCase();
   const isFiltered = group !== "all" || oem !== "all" || trimmed.length > 0;
+
+  /*
+    Back to page one when the matched set changes underneath us. Done during
+    render rather than in an effect: an effect would let the visibility pass
+    below run once against the stale page first, flashing the wrong window.
+  */
+  const filterKey = `${group}|${oem}|${trimmed}`;
+  const [lastFilterKey, setLastFilterKey] = useState(filterKey);
+  if (lastFilterKey !== filterKey) {
+    setLastFilterKey(filterKey);
+    setPage(1);
+  }
+
+  const pageCount = Math.max(1, Math.ceil(matchCount / pageSize));
+  const currentPage = Math.min(page, pageCount);
 
   useEffect(() => {
     const root = gridRef.current;
@@ -47,13 +74,22 @@ export function ModelFinder({
     timers.current = [];
 
     const cards = [...root.querySelectorAll<HTMLElement>("[data-model]")];
-    let shown = 0;
-
-    cards.forEach((card) => {
+    const matches = cards.filter((card) => {
       const matchesGroup = group === "all" || card.dataset.group === group;
       const matchesOem = oem === "all" || card.dataset.oem === oem;
       const matchesQuery = !trimmed || (card.dataset.search ?? "").includes(trimmed);
-      const show = matchesGroup && matchesOem && matchesQuery;
+      return matchesGroup && matchesOem && matchesQuery;
+    });
+
+    // Clamped here as well as in render: a filter that shrinks the result set
+    // must never leave the grid parked on a page past the end.
+    const lastPage = Math.max(1, Math.ceil(matches.length / pageSize));
+    const start = (Math.min(page, lastPage) - 1) * pageSize;
+    const onPage = new Set(matches.slice(start, start + pageSize));
+    let shown = 0;
+
+    cards.forEach((card) => {
+      const show = onPage.has(card);
       card.setAttribute("aria-hidden", show ? "false" : "true");
 
       if (show) {
@@ -77,8 +113,8 @@ export function ModelFinder({
       }
     });
 
-    setVisibleCount(shown);
-  }, [group, oem, trimmed]);
+    setMatchCount(matches.length);
+  }, [group, oem, trimmed, page, pageSize]);
 
   useEffect(() => {
     const pending = timers.current;
@@ -91,13 +127,30 @@ export function ModelFinder({
     setQuery("");
   };
 
-  const summary = useMemo(
-    () =>
-      visibleCount === total
+  /*
+    Paging keeps you where the cards are: without this you stay parked on the
+    pager and the new page opens entirely above the fold. Filter changes do not
+    scroll — you are already looking at the control you just used.
+  */
+  const goToPage = (next: number) => {
+    setPage(next);
+    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    gridRef.current?.scrollIntoView({ behavior: reduced ? "auto" : "smooth", block: "start" });
+  };
+
+  const summary = useMemo(() => {
+    if (matchCount === 0) return "No models match the current filters";
+    if (pageCount === 1) {
+      return matchCount === total
         ? `Showing all ${total} models`
-        : `Showing ${visibleCount} of ${total} models`,
-    [visibleCount, total],
-  );
+        : `Showing ${matchCount} of ${total} models`;
+    }
+    const from = (currentPage - 1) * pageSize + 1;
+    const to = Math.min(currentPage * pageSize, matchCount);
+    return matchCount === total
+      ? `Showing ${from}–${to} of ${total} models`
+      : `Showing ${from}–${to} of ${matchCount} matching models`;
+  }, [matchCount, total, pageCount, currentPage, pageSize]);
 
   return (
     <div>
@@ -153,12 +206,14 @@ export function ModelFinder({
         ) : null}
       </p>
 
-      <div ref={gridRef} className="mt-6 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+      <div ref={gridRef} className="mt-6 grid grid-cols-2 gap-3 sm:gap-5 xl:grid-cols-3">
         {children}
       </div>
 
+      <Pager current={currentPage} count={pageCount} onChange={goToPage} />
+
       {/* Empty state doubles as a conversion prompt — the enquiry is the point. */}
-      {visibleCount === 0 ? (
+      {matchCount === 0 ? (
         <div className="corner-ticks mt-2 rounded-sm border border-steel-200 bg-steel-50 px-6 py-12 text-center">
           <h3 className="text-xl font-bold text-ink">
             No model on this page matches {trimmed ? `“${query.trim()}”` : "that filter"}
@@ -191,6 +246,100 @@ export function ModelFinder({
         </div>
       ) : null}
     </div>
+  );
+}
+
+/**
+ * The page numbers to render: first, last and a window around the current one,
+ * with gaps standing in for the rest. The window is extended at either end so
+ * the row keeps a steady width instead of shrinking on the first and last
+ * pages.
+ */
+function pageList(current: number, count: number): (number | "gap")[] {
+  if (count <= 7) return Array.from({ length: count }, (_, index) => index + 1);
+
+  const wanted = new Set([1, count, current - 1, current, current + 1]);
+  if (current <= 3) [2, 3, 4].forEach((page) => wanted.add(page));
+  if (current >= count - 2) [count - 3, count - 2, count - 1].forEach((page) => wanted.add(page));
+
+  const pages = [...wanted].filter((page) => page >= 1 && page <= count).sort((a, b) => a - b);
+  return pages.flatMap<number | "gap">((page, index) =>
+    index > 0 && page - pages[index - 1]! > 1 ? ["gap", page] : [page],
+  );
+}
+
+/** Numbered pager for the model grid. Renders nothing when there is one page. */
+function Pager({
+  current,
+  count,
+  onChange,
+}: {
+  current: number;
+  count: number;
+  onChange: (page: number) => void;
+}) {
+  if (count <= 1) return null;
+
+  /* Prev/Next label collapses to the chevron alone on narrow screens, where
+     the number row is already using the full width. */
+  const step = (delta: number, label: string, path: string) => {
+    const target = current + delta;
+    const arrow = (
+      <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d={path} />
+      </svg>
+    );
+    return (
+      <button
+        type="button"
+        onClick={() => onChange(target)}
+        disabled={target < 1 || target > count}
+        aria-label={label}
+        className="inline-flex items-center gap-1.5 rounded-sm border border-steel-300 bg-white px-3 py-2 text-[13.5px] font-semibold text-ink-soft transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-px hover:border-navy-700 hover:text-navy-700 hover:shadow-card disabled:pointer-events-none disabled:opacity-40"
+      >
+        {delta < 0 ? arrow : null}
+        <span className="hidden sm:inline">{label}</span>
+        {delta > 0 ? arrow : null}
+      </button>
+    );
+  };
+
+  return (
+    <nav
+      aria-label="Vehicle model pages"
+      className="mt-10 flex flex-wrap items-center justify-center gap-2"
+    >
+      {step(-1, "Previous", "M10 4 6 8l4 4")}
+
+      {pageList(current, count).map((page, index) =>
+        page === "gap" ? (
+          <span
+            key={`gap-${index}`}
+            aria-hidden="true"
+            className="px-1 text-[13.5px] font-semibold text-ink-muted"
+          >
+            …
+          </span>
+        ) : (
+          <button
+            key={page}
+            type="button"
+            onClick={() => onChange(page)}
+            aria-label={`Page ${page} of ${count}`}
+            aria-current={page === current ? "page" : undefined}
+            className={`index-mark inline-flex min-w-[38px] items-center justify-center rounded-sm border px-3 py-2 text-[13.5px] font-bold tabular-nums transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+              page === current
+                ? "-translate-y-px border-navy-800 bg-navy-800 text-white shadow-card"
+                : "border-steel-300 bg-white text-ink-soft hover:-translate-y-px hover:border-navy-700 hover:text-navy-700 hover:shadow-card"
+            }`}
+          >
+            {page}
+          </button>
+        ),
+      )}
+
+      {step(1, "Next", "M6 4l4 4-4 4")}
+    </nav>
   );
 }
 

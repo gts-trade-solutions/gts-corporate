@@ -1,15 +1,7 @@
 import type { Metadata } from "next";
 import { Archivo, Inter } from "next/font/google";
 import "./globals.css";
-import { Analytics } from "@/components/Analytics";
-import { FloatingActions } from "@/components/FloatingActions";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
-import { JsonLd } from "@/components/JsonLd";
-import { PageTransition } from "@/components/PageTransition";
-import { ScrollProgress } from "@/components/ScrollProgress";
 import { site, siteUrl } from "@/data/site";
-import { organizationSchema, websiteSchema } from "@/lib/structured-data";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -46,15 +38,33 @@ export const metadata: Metadata = {
   verification: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION
     ? { google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION }
     : undefined,
-  formatDetection: { telephone: true },
+  /*
+    The site publishes no call action — WhatsApp, email and the enquiry form
+    are the routes. Left on, iOS Safari turns every printed office number into
+    a tap-to-dial link by itself, which would put the Call option back on the
+    one platform where it was never removed.
+  */
+  formatDetection: { telephone: false },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+/**
+ * Document shell only — fonts, global metadata and the skip link.
+ *
+ * The public site's chrome (header, footer, scroll progress, analytics) lives
+ * in `(site)/layout.tsx` so that `/admin` can render its own chrome instead of
+ * inheriting the marketing navigation. Both layouts provide an `#main` target
+ * for the skip link below.
+ */
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     /*
-      suppressHydrationWarning: the inline script below adds a `js` class to
-      <html> before React hydrates, so the client className legitimately differs
-      from the server one. Scoped to this element only.
+      suppressHydrationWarning: browser extensions (translators, dark-mode and
+      password tools) write attributes onto <html> before React hydrates, which
+      is not a bug in the page. Scoped to this element's own attributes only.
+
+      There is deliberately no inline <script> here. Scroll-reveal hides content
+      only under `@media (scripting: enabled)` in globals.css, so no-JS visitors
+      and crawlers see everything without a script to set a class first.
     */
     <html
       lang="en"
@@ -62,29 +72,13 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       suppressHydrationWarning
     >
       <body className="flex min-h-full flex-col bg-white">
-        {/*
-          Runs before any page content is parsed. Scroll-reveal hides content
-          only under `.js`, so a browser without JavaScript — or a crawler —
-          renders every section visible, with no flash either way.
-        */}
-        <script
-          dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }}
-        />
         <a
           href="#main"
           className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-[70] focus:rounded-sm focus:bg-navy-800 focus:px-4 focus:py-2.5 focus:text-sm focus:font-semibold focus:text-white"
         >
           Skip to main content
         </a>
-        <ScrollProgress />
-        <Header />
-        <main id="main" className="flex-1">
-          <PageTransition>{children}</PageTransition>
-        </main>
-        <Footer />
-        <FloatingActions />
-        <Analytics />
-        <JsonLd data={[organizationSchema(), websiteSchema()]} />
+        {children}
       </body>
     </html>
   );

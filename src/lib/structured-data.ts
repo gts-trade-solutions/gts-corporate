@@ -15,6 +15,8 @@ export function organizationSchema() {
     "@id": orgId,
     name: site.name,
     url: siteUrl,
+    // Use the full supplied identity for search and knowledge panels.
+    logo: `${siteUrl}/images/gts-logo.png`,
     description: site.supportingLine,
     address: {
       "@type": "PostalAddress",
@@ -129,6 +131,8 @@ export function modelPartsSchema(input: {
   parts: string[];
   /** Site-relative path to the model photograph. */
   image?: string;
+  /** The technical specification, already filtered to the confirmed fields. */
+  specs?: { label: string; value: string }[];
 }) {
   return {
     "@context": "https://schema.org",
@@ -139,6 +143,15 @@ export function modelPartsSchema(input: {
     category: "Vehicle spare parts",
     brand: { "@type": "Brand", name: input.brand },
     ...(input.image ? { image: `${siteUrl}${input.image}` } : {}),
+    ...(input.specs?.length
+      ? {
+          additionalProperty: input.specs.map((row) => ({
+            "@type": "PropertyValue",
+            name: row.label,
+            value: row.value,
+          })),
+        }
+      : {}),
     ...(input.parts.length
       ? {
           hasOfferCatalog: {

@@ -1,6 +1,8 @@
 import nodemailer, { type Transporter } from "nodemailer";
 import { enquiryLabel } from "@/data/enquiry";
-import { contact, site, siteUrl } from "@/data/site";
+import { contact, site, siteUrl, teamsHref, whatsappHref } from "@/data/site";
+import type { DueReminder, EnquiryRecord } from "./enquiry-log";
+import { describeEnquiry } from "./enquiry-log";
 import { escapeHtml, type RfqInput } from "./rfq";
 
 export type RfqAttachment = { filename: string; content: Buffer; contentType: string };
@@ -107,13 +109,15 @@ function leadHtml(data: RfqInput, attachments: RfqAttachment[]) {
 </div>`;
 }
 
-function acknowledgementText(data: RfqInput) {
+function acknowledgementText(data: RfqInput, reference?: string) {
   return [
     `Dear ${data.name},`,
     "",
     `Thank you for contacting ${site.name}. We have received your enquiry regarding "${data.product}" (${enquiryLabel(
       data.enquiryType,
     )}) and our team will review it and come back to you.`,
+    reference ? "" : "",
+    reference ? `Your reference for this enquiry is ${reference}. Quote it on any reply.` : "",
     "",
     "Summary of what you sent us:",
     `Enquiry type: ${enquiryLabel(data.enquiryType)}`,
@@ -121,8 +125,9 @@ function acknowledgementText(data: RfqInput) {
     data.quantity ? `Quantity / annual volume: ${data.quantity}` : "",
     data.targetMarket ? `Target market / destination: ${data.targetMarket}` : "",
     "",
-    "If your requirement is urgent, you can also reach us on:",
-    ...contact.phones,
+    // WhatsApp and email, not the office numbers — the site publishes no call
+    // action, and the acknowledgement should not be the one place that does.
+    urgentLine(),
     "",
     site.name,
     contact.office.lines.join(", "),
@@ -131,25 +136,47 @@ function acknowledgementText(data: RfqInput) {
     .join("\n");
 }
 
+/** The "if it is urgent" line, built from whichever channels are configured. */
+function urgentLine() {
+  const channels: string[] = [];
+  const whatsapp = whatsappHref();
+  if (whatsapp) channels.push(`WhatsApp: ${whatsapp}`);
+  if (contact.email) channels.push(`Email: ${contact.email}`);
+  const teams = teamsHref();
+  if (teams) channels.push(`Microsoft Teams: ${teams}`);
+
+  if (!channels.length) return "";
+  return `If your requirement is urgent, you can also reach us on — ${channels.join(" · ")}`;
+}
+
 /**
  * Sends the internal lead email and the acknowledgement to the enquirer.
  * Returns `delivered: false` when SMTP is not configured, so the caller can
  * decide what to do (accept and log in development, fail loudly in production).
  */
-export async function sendRfqEmails(data: RfqInput, attachments: RfqAttachment[]) {
+export async function sendRfqEmails(
+  data: RfqInput,
+  attachments: RfqAttachment[],
+  reference?: string,
+) {
   const config = readConfig();
   if (!config) return { delivered: false as const };
 
   const transport = getTransport(config);
-  const subject = `RFQ — ${enquiryLabel(data.enquiryType)} — ${data.company} (${data.country})`;
+  const ref = reference ? ` [${reference}]` : "";
+  const subject = `RFQ — ${enquiryLabel(data.enquiryType)} — ${data.company} (${data.country})${ref}`;
 
   await transport.sendMail({
     from: { name: `${site.name} Website`, address: config.from },
     to: config.to,
     replyTo: { name: data.name, address: data.email },
     subject,
-    text: leadText(data, attachments),
-    html: leadHtml(data, attachments),
+    text: `${reference ? `Reference: ${reference}\n\n` : ""}${leadText(data, attachments)}`,
+    html: `${
+      reference
+        ? `<p style="margin:0 0 12px;color:#64748b;font-size:13px">Reference <strong>${escapeHtml(reference)}</strong></p>`
+        : ""
+    }${leadHtml(data, attachments)}`,
     attachments: attachments.map((file) => ({
       filename: file.filename,
       content: file.content,
@@ -162,12 +189,124 @@ export async function sendRfqEmails(data: RfqInput, attachments: RfqAttachment[]
     await transport.sendMail({
       from: { name: site.name, address: config.from },
       to: { name: data.name, address: data.email },
-      subject: `We have received your enquiry — ${site.name}`,
-      text: acknowledgementText(data),
+      subject: reference
+        ? `We have received your enquiry — ${reference}`
+        : `We have received your enquiry — ${site.name}`,
+      text: acknowledgementText(data, reference),
     });
   } catch (error) {
     console.error("[rfq] acknowledgement email failed", error);
   }
 
   return { delivered: true as const };
+}
+
+/* --------------------------------------------------------- Follow-up mail */
+
+/**
+ * The "mark as answered" link put at the foot of every internal reminder.
+ *
+ * One click closes the enquiry so it stops being chased. The token is the
+ * shared reminder secret — the same one the cron job presents — so the link is
+ * only usable by someone who already has it. It is a low-value action behind a
+ * shared secret rather than a per-enquiry signature, which is proportionate:
+ * the worst a leaked link does is stop a reminder.
+ */
+const answeredLink = (reference: string) => {
+  const secret = process.env.REMINDER_SECRET;
+  if (!secret) return "";
+  return `${siteUrl}/api/reminders?token=${encodeURIComponent(secret)}&answered=${encodeURIComponent(reference)}`;
+};
+
+/** Stage 1 — nudges the sales inbox about an enquiry nobody has closed. */
+async function sendInternalReminder(transport: Transporter, config: SmtpConfig, record: EnquiryRecord) {
+  const age = Math.round((Date.now() - record.createdAt.getTime()) / 3_600_000);
+  const close = answeredLink(record.reference);
+
+  const lines = [
+    `Enquiry ${record.reference} has been open for ${age} hours.`,
+    "",
+    describeEnquiry(record),
+    `From: ${record.name} <${record.email}>`,
+    `Received: ${record.createdAt.toISOString()}`,
+    "",
+    "Reply to the original enquiry email to answer it — replies go straight to the enquirer.",
+    close ? `Mark it as answered so it stops being chased: ${close}` : "",
+  ].filter(Boolean);
+
+  await transport.sendMail({
+    from: { name: `${site.name} Website`, address: config.from },
+    to: config.to,
+    replyTo: { name: record.name, address: record.email },
+    subject: `Reminder — enquiry ${record.reference} still open (${record.company})`,
+    text: lines.join("\n"),
+  });
+}
+
+/**
+ * Stage 2 — tells the enquirer their enquiry is still live.
+ *
+ * Careful about what it promises: it does not say a quotation is coming on any
+ * particular day, because nothing here knows that.
+ */
+async function sendEnquirerReminder(transport: Transporter, config: SmtpConfig, record: EnquiryRecord) {
+  const lines = [
+    `Dear ${record.name},`,
+    "",
+    `We are following up on the enquiry you sent ${site.name} (reference ${record.reference}):`,
+    "",
+    describeEnquiry(record),
+    "",
+    "It is still with our team. If anything has changed — the quantity, the specification, the destination market — reply to this email and we will work to the latest version.",
+    "",
+    urgentLine(),
+    "",
+    site.name,
+    contact.office.lines.join(", "),
+  ].filter((line) => line !== "");
+
+  await transport.sendMail({
+    from: { name: site.name, address: config.from },
+    to: { name: record.name, address: record.email },
+    replyTo: config.to,
+    subject: `Following up on your enquiry — ${record.reference}`,
+    text: lines.join("\n"),
+  });
+}
+
+/**
+ * Sends one batch of due reminders.
+ *
+ * Each is sent and marked individually, so one bad address cannot block the
+ * rest of the batch. `markReminded` is passed in rather than imported here to
+ * keep this module free of database access — the mailer sends, the caller
+ * records.
+ */
+export async function sendReminders(
+  due: DueReminder[],
+  markReminded: (reference: string, stage: number) => Promise<void>,
+) {
+  const config = readConfig();
+  if (!config) return { delivered: false as const, sent: 0, failed: 0 };
+
+  const transport = getTransport(config);
+  let sent = 0;
+  let failed = 0;
+
+  for (const { record, stage } of due) {
+    try {
+      if (stage.audience === "internal") {
+        await sendInternalReminder(transport, config, record);
+      } else {
+        await sendEnquirerReminder(transport, config, record);
+      }
+      await markReminded(record.reference, stage.stage);
+      sent += 1;
+    } catch (error) {
+      console.error(`[reminders] stage ${stage.stage} failed for ${record.reference}`, error);
+      failed += 1;
+    }
+  }
+
+  return { delivered: true as const, sent, failed };
 }

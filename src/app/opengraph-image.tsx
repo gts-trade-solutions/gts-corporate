@@ -1,13 +1,18 @@
 import { ImageResponse } from "next/og";
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { site } from "@/data/site";
 
 /**
- * Branded Open Graph card, generated at build time so the site ships no
- * external image asset. Applies to every route unless a segment overrides it.
+ * Branded Open Graph card using the supplied local logo.
+ * Applies to every route unless a segment overrides it.
  */
 export const alt = `${site.name} — global import & export, automotive parts, contract manufacturing`;
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+const logoData = await readFile(join(process.cwd(), "public/images/gts-logo.png"), "base64");
+const logoSrc = `data:image/png;base64,${logoData}`;
 
 export default function OpengraphImage() {
   return new ImageResponse(
@@ -19,7 +24,7 @@ export default function OpengraphImage() {
           display: "flex",
           flexDirection: "column",
           justifyContent: "space-between",
-          backgroundColor: "#06172b",
+          backgroundColor: "#001a41",
           padding: "72px",
           fontFamily: "sans-serif",
         }}
@@ -30,27 +35,25 @@ export default function OpengraphImage() {
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              width: 68,
-              height: 68,
-              borderRadius: 6,
-              backgroundColor: "#dc6803",
-              color: "#ffffff",
-              fontSize: 26,
-              fontWeight: 700,
+              padding: "12px 18px",
+              borderRadius: 4,
+              backgroundColor: "#ffffff",
             }}
           >
-            GTS
+            {/* next/og renders plain image elements from the embedded local asset. */}
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={logoSrc} width={277} height={86} alt="GTS Integrated Solutions" />
           </div>
           <div style={{ display: "flex", flexDirection: "column" }}>
             <div style={{ color: "#ffffff", fontSize: 30, fontWeight: 700 }}>Trade Solutions</div>
-            <div style={{ color: "#b2c9e3", fontSize: 17, letterSpacing: 3, marginTop: 6 }}>
+            <div style={{ color: "#b5c8e2", fontSize: 17, letterSpacing: 3, marginTop: 6 }}>
               TRADE · AUTOMOTIVE · ENGINEERING
             </div>
           </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column" }}>
-          <div style={{ display: "flex", width: 96, height: 5, backgroundColor: "#dc6803" }} />
+          <div style={{ display: "flex", width: 96, height: 5, backgroundColor: "#e10000" }} />
           <div
             style={{
               color: "#ffffff",
@@ -63,7 +66,7 @@ export default function OpengraphImage() {
           >
             Global Import Export, Automotive Parts & Contract Manufacturing
           </div>
-          <div style={{ color: "#b2c9e3", fontSize: 25, marginTop: 24, maxWidth: 900 }}>
+          <div style={{ color: "#b5c8e2", fontSize: 25, marginTop: 24, maxWidth: 900 }}>
             Vehicle trade · Component sourcing · Fabrication · India market entry
           </div>
         </div>

@@ -15,9 +15,9 @@ const sizes: Record<Size, string> = {
 
 const variants: Record<Variant, string> = {
   primary:
-    "bg-accent-700 text-white hover:bg-accent-600 hover:shadow-[0_10px_24px_-12px_rgb(181_71_8/0.85)]",
-  navy: "bg-navy-800 text-white hover:bg-navy-700 hover:shadow-[0_10px_24px_-12px_rgb(10_36_64/0.8)]",
-  /* For use on the amber band, where the primary button would disappear. */
+    "bg-accent-700 text-white hover:bg-accent-600 hover:shadow-[0_10px_24px_-12px] hover:shadow-accent-700/85",
+  navy: "bg-navy-800 text-white hover:bg-navy-700 hover:shadow-[0_10px_24px_-12px] hover:shadow-navy-800/80",
+  /* For use on the red band, where the primary button would disappear. */
   light: "bg-white text-navy-900 hover:bg-accent-50 hover:shadow-[0_10px_24px_-12px_rgb(0_0_0/0.5)]",
   outline:
     "border border-steel-300 bg-white text-ink hover:border-navy-700 hover:text-navy-700 hover:shadow-card",
@@ -56,6 +56,10 @@ type ButtonLinkProps = {
   size?: Size;
   className?: string;
   withArrow?: boolean;
+  /** Set to -1 to take the link out of the tab order while it is off-canvas. */
+  tabIndex?: number;
+  /** Opens in a new tab, with the rel hardening that requires. */
+  external?: boolean;
 };
 
 export function ButtonLink({
@@ -65,9 +69,16 @@ export function ButtonLink({
   size = "md",
   className = "",
   withArrow = false,
+  tabIndex,
+  external = false,
 }: ButtonLinkProps) {
   return (
-    <Link href={href} className={buttonClass(variant, size, className)}>
+    <Link
+      href={href}
+      tabIndex={tabIndex}
+      {...(external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
+      className={buttonClass(variant, size, className)}
+    >
       {children}
       {withArrow ? <Chevron /> : null}
     </Link>
@@ -94,9 +105,15 @@ export function ArrowLink({
   className?: string;
 }) {
   return (
+    /*
+      min-h-11 gives the link a 44px tap target on a phone without changing how
+      it looks — the text is only 20px tall, and there are five or six of these
+      on a page. `-my-2.5` takes the extra height back out of the flow at every
+      width, so adding it does not open up the layout.
+    */
     <Link
       href={href}
-      className={`group/link inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 transition-colors duration-200 hover:text-accent-700 ${className}`}
+      className={`group/link -my-2.5 inline-flex min-h-11 items-center gap-1.5 text-sm font-semibold text-navy-700 transition-colors duration-200 hover:text-accent-700 ${className}`}
     >
       <span className="relative">
         {children}

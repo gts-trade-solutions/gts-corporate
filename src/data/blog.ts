@@ -15,6 +15,8 @@
  * ISO `YYYY-MM-DD` form — it is used for both display and `datePublished`.
  */
 
+import type { MediaKey } from "./media";
+
 export type BlogBlock =
   | { type: "heading"; text: string }
   | { type: "paragraph"; text: string }
@@ -30,6 +32,11 @@ export type BlogPost = {
   metaDescription: string;
   keywords: string[];
   category: string;
+  /**
+   * Photograph for the card and the post banner — a slot in `media.ts`,
+   * chosen from the page that covers the same subject.
+   */
+  cover: MediaKey;
   publishedAt: string;
   updatedAt?: string;
   readingMinutes: number;
@@ -57,6 +64,7 @@ export const blogPosts: BlogPost[] = [
       "vehicle import rules by country",
     ],
     category: "Vehicle Trade",
+    cover: "vehicleTrade",
     publishedAt: "2026-03-12",
     readingMinutes: 6,
     excerpt:
@@ -160,6 +168,7 @@ export const blogPosts: BlogPost[] = [
       "Indian vehicle spare parts",
     ],
     category: "Aftermarket",
+    cover: "partsThreeWheelers",
     publishedAt: "2026-04-28",
     readingMinutes: 7,
     excerpt:
@@ -257,6 +266,7 @@ export const blogPosts: BlogPost[] = [
       "market entry compliance",
     ],
     category: "Homologation",
+    cover: "consultingHomologation",
     publishedAt: "2026-05-19",
     readingMinutes: 7,
     excerpt:
@@ -355,6 +365,7 @@ export const blogPosts: BlogPost[] = [
       "trailer EBS",
     ],
     category: "Components",
+    cover: "partsTrailer",
     publishedAt: "2026-06-09",
     readingMinutes: 6,
     excerpt:
@@ -457,6 +468,7 @@ export const blogPosts: BlogPost[] = [
       "brand representation India",
     ],
     category: "Market Entry",
+    cover: "indiaPartner",
     publishedAt: "2026-07-14",
     readingMinutes: 8,
     excerpt:
@@ -568,6 +580,7 @@ export const blogPosts: BlogPost[] = [
       "electric vehicle duty cycle",
     ],
     category: "EV",
+    cover: "partsEv",
     publishedAt: "2026-08-05",
     readingMinutes: 6,
     excerpt:

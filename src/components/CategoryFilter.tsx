@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, ReactNode } from "react";
 import { Icon } from "./Icon";
+import { CardCarousel } from "./CardCarousel";
 
 type Option = { id: string; title: string };
 
@@ -169,8 +170,10 @@ export function CategoryFilter({
         ) : null}
       </p>
 
-      <div ref={gridRef} className="mt-6 grid gap-6 md:grid-cols-2 xl:grid-cols-3">
-        {children}
+      <div ref={gridRef} className="mt-6">
+        <CardCarousel label="Vehicle component categories" resetKey={`${active}:${trimmed}`}>
+          {children}
+        </CardCarousel>
       </div>
 
       {/* Empty state doubles as a conversion prompt — the enquiry is the point. */}

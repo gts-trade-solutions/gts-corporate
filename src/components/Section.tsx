@@ -21,7 +21,14 @@ export function Section({
   children: ReactNode;
 }) {
   return (
-    <section id={id} className={`${tones[tone]} py-16 sm:py-20 lg:py-24 ${className}`}>
+    /*
+      Vertical rhythm is deliberately much tighter on a phone than on a desk.
+      These pages stack ten to fifteen sections into one column on mobile, so
+      the desktop py-24 was costing a full extra screen of scrolling per three
+      sections while buying nothing — there is no adjacent column for the
+      whitespace to separate it from. Desktop spacing is unchanged.
+    */
+    <section id={id} className={`${tones[tone]} py-11 sm:py-16 lg:py-24 ${className}`}>
       <Container>{children}</Container>
     </section>
   );
@@ -52,8 +59,10 @@ export function Eyebrow({
         </span>
       ) : null}
       <span className="rule-draw h-px w-7 bg-accent-600" aria-hidden="true" />
+      {/* 11px uppercase with this much letter-spacing is at the edge of
+          legible on a phone; a half-point up costs nothing vertically. */}
       <span
-        className={`text-[11px] font-bold uppercase tracking-[0.18em] ${
+        className={`text-[11.5px] font-bold uppercase tracking-[0.16em] sm:text-[11px] sm:tracking-[0.18em] ${
           inverted ? "text-accent-500" : "text-accent-700"
         }`}
       >
@@ -92,7 +101,7 @@ export function SectionHeading({
         </Eyebrow>
       ) : null}
       <Tag
-        className={`mt-4 text-[30px] font-bold leading-[1.1] tracking-[-0.025em] sm:text-[38px] ${
+        className={`mt-3 text-[26px] font-bold leading-[1.12] tracking-[-0.025em] sm:mt-4 sm:text-[34px] lg:text-[38px] ${
           inverted ? "text-white" : "text-ink"
         }`}
       >
@@ -100,7 +109,7 @@ export function SectionHeading({
       </Tag>
       {lead ? (
         <p
-          className={`mt-4 max-w-[62ch] text-pretty text-base leading-relaxed sm:text-[17px] ${
+          className={`mt-3 max-w-[62ch] text-pretty text-[15.5px] leading-relaxed sm:mt-4 sm:text-[17px] ${
             inverted ? "text-navy-100" : "text-ink-soft"
           }`}
         >

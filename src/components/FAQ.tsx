@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import type { MouseEvent } from "react";
 import type { Faq } from "@/data/types";
@@ -44,26 +45,29 @@ function FaqItem({ faq }: { faq: Faq }) {
       ref={detailsRef}
       className="group border-b border-steel-200 transition-colors duration-200 last:border-b-0"
     >
+      {/* Rows are tighter and the question a size smaller on a phone: a set of
+          thirteen questions is otherwise two and a half screens of headers
+          before a single answer is open. */}
       <summary
         onClick={handleClick}
-        className="flex cursor-pointer list-none items-start justify-between gap-6 py-5 text-left [&::-webkit-details-marker]:hidden"
+        className="flex cursor-pointer list-none items-start justify-between gap-4 py-3.5 text-left sm:gap-6 sm:py-5 [&::-webkit-details-marker]:hidden"
       >
         <h3
-          className={`text-[17px] font-bold leading-snug transition-colors duration-200 ${
+          className={`text-[15.5px] font-bold leading-snug transition-colors duration-200 sm:text-[17px] ${
             expanded ? "text-navy-800" : "text-ink group-hover:text-navy-700"
           }`}
         >
           {faq.question}
         </h3>
         <span
-          className={`mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-sm border transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          className={`mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-sm border transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] sm:h-7 sm:w-7 ${
             expanded
               ? "rotate-180 border-accent-600 bg-accent-600 text-white"
               : "border-steel-300 text-ink-soft group-hover:border-navy-700 group-hover:text-navy-700"
           }`}
           aria-hidden="true"
         >
-          <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
+          <svg viewBox="0 0 16 16" className="h-3 w-3 sm:h-3.5 sm:w-3.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round">
             <path d="M3 8h10" />
             <path
               d="M8 3v10"
@@ -82,19 +86,43 @@ function FaqItem({ faq }: { faq: Faq }) {
         }`}
       >
         <div className="overflow-hidden">
-          <p className="max-w-4xl pb-6 text-[15.5px] leading-relaxed text-ink-soft">{faq.answer}</p>
+          <p className="max-w-4xl pb-5 text-[15px] leading-relaxed text-ink-soft sm:pb-6 sm:text-[15.5px]">{faq.answer}</p>
         </div>
       </div>
     </details>
   );
 }
 
-export function FAQ({ faqs, id = "faqs" }: { faqs: Faq[]; id?: string }) {
+/**
+ * `allLink` adds a pointer to the /faq hub beneath the set. On by default for
+ * the service pages; the hub itself passes `false`, since it is already there.
+ */
+export function FAQ({
+  faqs,
+  id = "faqs",
+  allLink = true,
+}: {
+  faqs: Faq[];
+  id?: string;
+  allLink?: boolean;
+}) {
   return (
-    <div id={id} className="scroll-mt-40 border-y border-steel-200">
-      {faqs.map((faq) => (
-        <FaqItem key={faq.question} faq={faq} />
-      ))}
-    </div>
+    <>
+      <div id={id} className="scroll-mt-40 border-y border-steel-200">
+        {faqs.map((faq) => (
+          <FaqItem key={faq.question} faq={faq} />
+        ))}
+      </div>
+      {allLink ? (
+        <p className="mt-3 text-[14.5px] text-ink-soft sm:mt-5">
+          <Link
+            href="/faq"
+            className="-my-2.5 inline-flex min-h-11 items-center font-semibold text-accent-700 transition-colors hover:text-accent-600"
+          >
+            See every question we are asked →
+          </Link>
+        </p>
+      ) : null}
+    </>
   );
 }

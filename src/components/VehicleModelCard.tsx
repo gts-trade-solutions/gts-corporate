@@ -23,16 +23,16 @@ export function VehicleModelCard({ item }: { item: VehicleModel }) {
   return (
     <Link
       href={`/vehicle-models/${item.slug}`}
-      className="keyline group relative flex h-full flex-col overflow-hidden rounded-sm border border-steel-200 bg-white p-5 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-navy-200 hover:shadow-lift"
+      className="keyline group relative flex h-full flex-col overflow-hidden rounded-sm border border-steel-200 bg-white p-3 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-navy-200 hover:shadow-lift sm:p-5"
     >
       {/* Catalogue photograph. `contain`, not `cover`: these are cut-out shots on
           a plain ground, and cropping them lops the ends off the longer trucks. */}
-      <div className="relative -mx-5 -mt-5 mb-5 aspect-[3/2] overflow-hidden border-b border-steel-200 bg-white">
+      <div className="relative -mx-3 -mt-3 mb-3 aspect-[3/2] overflow-hidden border-b border-steel-200 bg-white sm:-mx-5 sm:-mt-5 sm:mb-5">
         <Image
           src={vehicleImage(item)}
           alt={vehicleImageAlt(item)}
           fill
-          sizes="(min-width: 1024px) 380px, (min-width: 640px) 45vw, 90vw"
+          sizes="(min-width: 1280px) 380px, (min-width: 640px) 45vw, 45vw"
           className="object-contain p-2 transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.03]"
         />
       </div>
@@ -42,16 +42,23 @@ export function VehicleModelCard({ item }: { item: VehicleModel }) {
           <span className="block truncate text-[11px] font-bold uppercase tracking-[0.14em] text-accent-700">
             {item.oem}
           </span>
-          <h3 className="mt-1.5 text-[18px] font-bold leading-snug text-ink transition-colors duration-200 group-hover:text-navy-800">
+          <h3 className="mt-1 text-[15px] font-bold leading-snug text-ink transition-colors duration-200 group-hover:text-navy-800 sm:mt-1.5 sm:text-[18px]">
             {item.model}
           </h3>
         </div>
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-navy-50 text-navy-700 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105 group-hover:bg-navy-800 group-hover:text-white">
+        <span className="hidden h-10 w-10 shrink-0 items-center justify-center rounded-sm bg-navy-50 text-navy-700 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-105 group-hover:bg-navy-800 group-hover:text-white sm:flex">
           <Icon name={group?.icon ?? "car"} className="h-5 w-5" />
         </span>
       </div>
 
-      <dl className="mt-4 grid gap-2 border-t border-steel-200 pt-4 text-[13px]">
+      {/*
+        The schedule is a grid of 24 cards. Two-up on a phone, which means the
+        spec rows and the part chips below have nowhere to sit — so they are
+        kept in the HTML (they are the long-tail search terms) but hidden below
+        sm, where the card is a photo, a name and a tap target. The full detail
+        is one tap away on the model page.
+      */}
+      <dl className="mt-4 hidden gap-2 border-t border-steel-200 pt-4 text-[13px] sm:grid">
         <div className="flex gap-2">
           <dt className="w-[68px] shrink-0 font-semibold uppercase tracking-[0.08em] text-ink-muted">
             Type
@@ -72,7 +79,7 @@ export function VehicleModelCard({ item }: { item: VehicleModel }) {
         </div>
       </dl>
 
-      <div className="mt-4 border-t border-steel-200 pt-4">
+      <div className="mt-4 hidden border-t border-steel-200 pt-4 sm:block">
         <span className="text-[11px] font-bold uppercase tracking-[0.14em] text-ink-muted">
           Priority parts
         </span>
@@ -93,10 +100,11 @@ export function VehicleModelCard({ item }: { item: VehicleModel }) {
         </ul>
       </div>
 
-      <span className="mt-5 flex flex-1 items-end">
-        <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 transition-colors duration-200 group-hover:text-accent-700">
+      <span className="mt-2.5 flex flex-1 items-end sm:mt-5">
+        <span className="inline-flex items-center gap-1.5 text-[12.5px] font-semibold text-navy-700 transition-colors duration-200 group-hover:text-accent-700 sm:text-sm">
           <span className="relative">
-            Select parts &amp; enquire
+            <span className="sm:hidden">{item.parts.length} parts</span>
+            <span className="max-sm:hidden">Select parts &amp; enquire</span>
             <span
               className="absolute -bottom-0.5 left-0 h-px w-full origin-left scale-x-0 bg-accent-600 transition-transform duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-x-100"
               aria-hidden="true"

@@ -41,9 +41,16 @@ same values in your hosting provider's dashboard for production.
 | `SMTP_SECURE` | No | Defaults to `true` on port 465, `false` otherwise. |
 | `RFQ_FROM_EMAIL` | No | From address. Defaults to `SMTP_USER`. Use a domain you control. |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | No | Public enquiry address shown in header, footer and contact page. **Left blank by design** — see §7. |
-| `NEXT_PUBLIC_WHATSAPP_NUMBER` | No | Digits with country code, e.g. `919600122296`. Setting it enables the floating WhatsApp button; leaving it blank hides it. |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | No | Digits with country code, e.g. `919600122296`. WhatsApp is the site's primary conversational channel — every former Call action routes to it. Blank, those CTAs fall back to email, then the enquiry form. |
+| `NEXT_PUBLIC_TEAMS_ID` | No | Microsoft Teams: a full meeting/chat URL, or a bare Teams address, which is wrapped into a chat deep link. Blank hides every Teams surface. |
+| `ANTHROPIC_API_KEY` | No | Switches the site assistant to AI answers and adds the AI answer in search. Unset, the assistant still answers — from the site index, in offline mode — and search returns keyword results only. See §6b. |
+| `REMINDER_SECRET` | No | Shared token for the enquiry follow-up job at `/api/reminders`. Unset, the endpoint returns 404 and no reminder is ever sent. Needs the `MYSQL_*` variables too. See §6b. |
 | `NEXT_PUBLIC_GA_ID` | No | GA4 measurement ID. The analytics script only loads when set. |
 | `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | No | Search Console HTML-tag token (the `content` value only). |
+| `MYSQL_HOST` / `MYSQL_PORT` / `MYSQL_USER` / `MYSQL_PASSWORD` / `MYSQL_DATABASE` | No | Database behind the `/admin` vehicle model editor. Unset, the site serves the static catalogue and the admin is read-only. Read at runtime, so no rebuild is needed. |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | No | The single sign-in for `/admin`. Unset in production, nobody can sign in. |
+| `ADMIN_USERS` | No | One password per person — `email:password,email:password`. The address is what the admin header shows and what a revocation removes. |
+| `ADMIN_SESSION_SECRET` | No | Signs the admin session cookie. Derived from the credentials when unset, which signs everyone out whenever a password changes. Set it explicitly if you run more than one instance. |
 
 ---
 
@@ -106,49 +113,288 @@ src/
     odc-logistics/          ODC Logistics & heavy-lift transport
       route-survey/         Route Survey Reports
       reports/              Reports
-    contact/                Contact / RFQ
+    contact/                Contact / RFQ, country-based support, talk to an expert
+    faq/                    Every FAQ on the site, filterable by topic and text
     privacy/                Privacy notice
     api/rfq/route.ts        Enquiry endpoint
+    api/chat/route.ts       Site assistant (streams; Claude)
+    api/search/route.ts     Site search — keyword always, AI answer on request
+    api/reminders/route.ts  Enquiry follow-up job (cron)
+    llms.txt/route.ts       Generated plain-text site summary for AI crawlers
     sitemap.ts robots.ts    SEO files
     opengraph-image.tsx     Generated OG/Twitter card (no image asset needed)
     icon.svg not-found.tsx
-  components/               Header, Hero, PageHero, ServiceCard, ProductCategoryCard,
-                            FeatureSplit, CTASection, FAQ, RFQForm, CategoryFilter,
+  components/               Header, Hero, HeroSlider, PageHero, ServiceCard,
+                            ProductCategoryCard, FeatureSplit, CTASection, FAQ,
+                            FaqBrowser, RFQForm, CategoryFilter, SiteSearch,
+                            ChatPanel, MarketSupport, TalkToExpert,
                             ModelFinder, PartsSelector, VehicleModelCard,
                             PostBody, PostCard, SectionNav, Reveal, Spotlight,
                             ScrollProgress, FloatingActions, Footer, Icon, Logo,
                             Analytics, JsonLd
-  data/                     All copy and taxonomy (see below)
-  lib/                      seo.ts, structured-data.ts, rfq.ts, mailer.ts, rate-limit.ts
+  data/                     All copy and taxonomy (see below), incl. countries.ts,
+                            hero-slides.ts, faq-groups.ts
+  lib/                      seo.ts, structured-data.ts, rfq.ts, mailer.ts, rate-limit.ts,
+                            site-index.ts, assistant.ts, enquiry-log.ts
 ```
 
-Total: 128 prerendered pages plus the one dynamic route (`/api/rfq`).
+Total: 138 prerendered pages plus the dynamic routes (`/api/rfq`, `/api/chat`,
+`/api/search`, `/api/reminders`).
 
 ---
 
 ## 5. Design & interaction system
 
-Navy brand plus a single amber accent, strong dark text, no IT/cloud gradients and no
-carousels. The palette is the brief's; the *use* of it is deliberately more assertive than
-the brief describes — see §11. Depth comes from artwork, scale contrast and motion.
+Navy brand plus a single signal-red accent, strong dark text and no IT/cloud gradients. The
+palette is the brief's; the *use* of it is deliberately more assertive than the brief
+describes — see §11. Depth comes from artwork, scale contrast and motion.
+
+The one carousel is [CardCarousel](src/components/CardCarousel.tsx), used for the scope and
+category card rows. It is a horizontal scroller with arrows, keyboard support and a 4s
+autoplay that stops on interaction, off-screen, on a hidden tab and under reduced motion —
+not a hero slideshow, and the cards are server-rendered so they are all present without JS.
 
 **Motion tokens** live in [globals.css](src/app/globals.css): one easing curve
 (`--ease-out-industrial`) and three durations, so everything moves the same way.
 
+### The module banner (`SplitHero`)
+
+Every module landing page opens with the same split banner: a full-bleed
+photograph carrying the breadcrumb and the h1, and a dark panel carrying the
+module's **service list** and one accent call to action. It started as the ODC
+Logistics hero and is now shared — [SplitHero.tsx](src/components/SplitHero.tsx).
+
+On these six pages: `/import-export`, `/automotive-parts`, `/manufacturing`,
+`/consulting`, `/vehicle-models`, `/odc-logistics`.
+
+The point of it is the list. A visitor landing on a module page sees everything
+that module covers and goes straight to the part they came for, instead of a
+paragraph and two buttons.
+
+**Each list is derived from data the module already publishes** — `tradeServiceList`,
+`partsServiceList`, `manufacturingServiceList`, `consultingServiceList`,
+`vehicleModelsServiceList`, `odcServiceList` — so the banner cannot advertise
+something the module does not have, and adding a category adds it to the banner.
+Where an entry is an anchor it points at the page that actually publishes that
+card (e.g. `/manufacturing/scope#reefer-solutions`); those cards sit inside a
+`CardCarousel`, which is a scroll container, so the anchor resolves and the card
+is scrolled into view. **All anchors were verified against the built HTML.**
+
+No colour is passed in: the panel inherits the module's accent through
+`ModuleTheme`, which is why the list marks are green on ODC, amber on trade,
+blue on manufacturing and purple on consulting.
+
+Below the banner, the landing pages' "In this section" cards carry a
+**photograph, not a bullet list** — the banner already lists every category, so
+the cards used to repeat it word for word. Each card uses its destination page's
+own slot, so the picture a visitor clicks is the picture they arrive at.
+
+`PageHero` is still used for pages that have no service list to show: the
+sub-pages, the detail pages, blog, contact, FAQ and privacy. Every one of those
+except FAQ and privacy now passes `media`, so it opens on its own photograph
+(see *Artwork and the image system* below).
+
+### The phone tab bar
+
+Phones get a fixed bottom tab bar ([MobileTabBar](src/components/MobileTabBar.tsx))
+rather than a conversion strip: **Search · Parts · Contact · Menu**, with a raised
+back-to-top button on the left and the Talk to Expert pill beside the assistant
+bubble on the right, above the bar.
+
+- It is mounted by `Header`, not on its own, because Search and Menu drive state
+  the header owns (the search dialog and the drawer).
+- `TAB_BAR_HEIGHT` is exported and consumed by `FloatingActions`. The two are a
+  pair — changing the bar's height means changing that offset.
+- `FloatingActions` is split by breakpoint: on a phone it renders only the pill
+  and the bubble above the bar; the WhatsApp / Teams / back-to-top rail is
+  desktop-only, since the bar already carries back-to-top and the pill already
+  carries WhatsApp.
+- The offset is passed as a CSS custom property, **not an inline `bottom`** — an
+  inline style beats `md:bottom-6`, which pinned the row at the phone offset on
+  desktop and collided it with the rail.
+- The drawer (z-55) sits above the bar (z-50), so opening the menu covers it.
+
+**Header fit budget.** The desktop bar omits Home *and* Contact: the logo covers
+Home, "Request a Quote" covers Contact, and adding the search button pushed the
+row over — measured at 1280px, search overlapped the Contact link by 47px. Before
+adding anything else to that row, measure it at 1280 and 1440.
+
+### Mobile density — measured, not guessed
+
+Every page stacks into one column on a phone, and the page count is high, so
+vertical rhythm is set **much tighter below `sm` than at desktop**. Desktop spacing
+is unchanged from the original design; only the mobile step was reduced.
+
+The rules, all of which live in shared components so they apply everywhere:
+
+- `Section` is `py-11 sm:py-16 lg:py-24` (was `py-16 sm:py-20 lg:py-24`). With
+  twelve to fifteen sections on a page this was the single biggest saving.
+- Headings step down one size on mobile — `SectionHeading`, `PageHero`,
+  `CTASection`, `AlternatingRow`.
+- **Card grids become rows below `sm`** where the card is an icon, a title and a
+  line of text: "Why GTS" on the home page and `TalkToExpert`. Same content,
+  roughly half the height.
+- **Photo cards crop wider on a phone** — `ServiceCard` and `PostCard` photos are
+  2:1 below `sm` and 16:10 / 16:9 above it, and the home page shows two articles
+  on a phone instead of three.
+- **`VehicleModelCard` is two-up on a phone.** The spec rows and part chips are
+  hidden below `sm` — kept in the HTML, because they are the long-tail search
+  terms — leaving a photo, a name and a tap target. This took `/vehicle-models`
+  from 26 phone screens to under 12.
+- **`/faq` is topic-first.** It renders an index of the eight sets and opens one
+  at a time; search spans all of them. It does not render all 110 questions.
+- Tap targets: `ArrowLink` and the footer links carry a `min-h` with a negative
+  margin, so they hit 44px/36px without changing the layout.
+
+**Measuring it.** The numbers above were taken with headless Chrome over CDP at a
+390×844 viewport, reporting `document.documentElement.scrollHeight` per page and
+per section. If you add a section, measure before and after — "it looks fine on my
+laptop" is how the page got to nineteen screens in the first place. Current state,
+in phone screens: home under 12.5 (was 14.4 before its five scope sections were
+folded into the photo cards), ODC 14.7, parts 12.4, models 11.7, import & export
+8.7, contact 8.3, blog 8.1 (cover photos added), FAQ 4.9. ODC, parts, models and
+FAQ were not re-measured after the photography pass.
+
+**Going below this means cutting content, not spacing.** The home page now shows
+each service once, as a photo card, where it used to show the bento, then five
+`FeatureSplit` scope sections restating the same services, then a "Why GTS" grid
+restating them a third time — the scope lists live on the service pages. The ODC
+page still carries eight alternating rows; that is its remaining bulk, and
+dropping any of them is a client decision.
+
+### Module themes
+
+**Each section of the site has its own colour theme.** No component was re-styled to do
+this: each route segment's `layout.tsx` wraps its pages in
+[`<ModuleTheme>`](src/components/ModuleTheme.tsx), which does nothing but set a
+`data-module` attribute, and `globals.css` re-declares the design tokens on that element.
+Every `bg-accent-600`, `text-navy-700`, `shadow-card` and `spotlight` below it then
+resolves to the module's own value. Nothing inside the subtree knows a theme exists, and it
+renders on the server, so there is no flash of the default palette on a hard load.
+
+| Section | Theme | Ground | Accent |
+| --- | --- | --- | --- |
+| Home, Contact, Privacy | GTS brand | Navy `#001a41` | Signal red `#e10000` |
+| Import & Export | Harbour | Deep petrol `#042630` | Cargo amber `#b45309` |
+| Automotive Parts | Gunmetal | Graphite `#191a1c` | Electric cyan `#0e7490` |
+| Manufacturing | Blueprint | Drawing-office slate `#0d1826` | Engineering blue `#1d4ed8` |
+| Consulting | Meridian | Indigo night `#151235` | Violet `#7c3aed` |
+| ODC Logistics | Convoy | Asphalt `#1a1c13` | Hi-vis lime `#4d7c0f` |
+| Vehicle Models | Depot | Yard green `#101f1a` | Emerald `#047857` |
+| Blog | Journal | Ink plum `#221530` | Berry `#be185d` |
+
+Three things hold it together rather than letting it fragment:
+
+- **The chrome never changes.** Header, footer, floating actions and the scroll progress bar
+  sit *outside* the wrapper, in `(site)/layout.tsx`. Navy and signal red frame every page
+  whatever the section, and Home, Contact and Privacy stay fully on brand — those are the
+  pages where GTS should be speaking as itself, not as a section.
+- **Every ramp has the same value structure** as the navy/red original, so a theme only ever
+  changes hue, never the contrast relationships the layouts were built on. Each accent was
+  checked against its own ground and against white: the weakest pairing in any module is at
+  or above the base theme's, so nothing here trades legibility for variety.
+- **Accent hues are spaced 25–77° apart**, so no two sections read as the same colour, and
+  each ground is the deep, desaturated end of a hue that belongs with the accent it carries.
+
+A theme declares only two ramps — `--color-navy-*` (the ground) and `--color-accent-*`.
+Everything else is derived from them in the shared `[data-module]` rule: the ink, the muted
+body tone, the four steel surfaces, the card shadows, and the `--scene-*` depth ramp that
+retints the generated `PortScene`/`FabricationScene` artwork to match the page it sits on.
+
+Two build-time details are worth knowing before editing the tokens. Tailwind inlines
+`--shadow-*` values into the utility, so the shadow colour goes through `rgb(var(--shadow-rgb) / …)`
+— a `var()` *inside* the inlined value is what makes it resolve per module. And a `var()`
+used inside a custom property is substituted where that property is *declared*, which is why
+the derived tokens live on `[data-module]` and not on `:root`.
+
 ### Artwork and the image system
 
-**Every image slot on the site is declared in [src/data/media.ts](src/data/media.ts).** Until
-a photograph is supplied, each slot renders generated scene artwork, so the site is complete
-as it stands. To use a real photo: drop the file in `public/images/`, set `src` on the slot,
-update `alt`. Nothing else changes — `<Media>` switches to `next/image` automatically, and
-each slot carries a `brief` describing what the photograph should show.
+**Every image slot on the site is declared in [src/data/media.ts](src/data/media.ts), and
+every slot now carries a photograph** — no page shows the generated scene artwork any more.
+To change a photo: drop the file in `public/images/`, set `src` on the slot, update `alt`
+and `credit`. Nothing else changes — `<Media>` switches to `next/image` automatically, and
+each slot carries a `brief` describing what a GTS replacement should show. A slot without
+`src` still falls back to the scene artwork, so a new slot can be added before its picture.
 
-**Eleven slots now carry real photography**, all on the ODC Logistics pages. Five came from the
-client's RACE Innovations logistics pages; the six service photographs were supplied in the
-client's brief and extracted from that PDF. All were converted to WebP and are rendered through
-`next/image`, which serves AVIF/WebP at the right size per breakpoint. [MediaFigure](src/components/MediaFigure.tsx) wraps a slot with
-the scrim and the spec-sheet plate caption, which is what keeps a photograph reading as part of
-the technical system rather than as decoration.
+A slot can also carry `position` — a CSS `object-position` — when the subject is not
+centred and a wide crop would cut it off (the trailer axles, the tractor, the welder).
+
+**No photograph appears twice on the same page.** That was checked by crawling every page
+type and listing each `<img>`; keep it that way when adding a card or a plate.
+
+**A slot can hold a video instead of a still.** Put an H.264 MP4 in `public/videos/`, set
+`video` on the slot, and set `src` to a still from the same footage — the type makes the
+still mandatory, because it is the poster, the frame the server renders, the frame a crawler
+indexes and the frame that stays under reduced motion.
+[MediaVideo](src/components/MediaVideo.tsx) then plays it muted, looping and inline, pausing
+it off-screen and on a hidden tab, stopping it entirely for `prefers-reduced-motion`, and
+falling back to the poster if the file fails to load. Video is decoration: nothing that only
+appears in one is information the page needs.
+
+[PageHero](src/components/PageHero.tsx) takes an optional `media` slot, which puts that
+photograph or video full-bleed behind the banner with the scrim and the blueprint grid over
+it. **Every sub-page, detail page, blog page and the contact page passes one**, so each opens on
+its own photograph; only FAQ and privacy keep the flat navy banner. The photo used to sit in a
+[MediaBand](src/components/MediaBand.tsx) plate further down, under a hero carrying one of four
+blueprint drawings that repeated from page to page — the drawing is gone and the plate moved up.
+MediaBand is still used on Import & Export and Automotive Parts, where it is a second, different
+photograph.
+
+Where the pictures appear:
+
+| Where | Slots |
+| --- | --- |
+| Home banner (4 slides) | `slideTrade`, `slideComponents`, `slideManufacturing`, `slideConsulting` |
+| Home service cards, and each module's split banner | `importExportHero`, `automotivePartsHero`, `manufacturingHero`, `consultingHero`, `odcJetty`, `vehicleModelsHero` |
+| Landing-page cards, and each sub-page's banner | `tradeCategories`, `vehicleTrade`, `indiaPartner`, `trailerModification`, `manufacturingProcess`, `consultingFireSafety`, `consultingVehicleService`, `consultingHomologation` |
+| Parts category cards, and each category page's banner | `partsTwoWheelers` … `partsAgriculture` (one per category, set as `media` in `partCategories`) |
+| Blog cards and post banners | `cover` on each post in `blog.ts`, pointing at the slot for the same subject |
+| Blog index / contact banners | `blogJournal`, `contactCity` |
+| ODC Logistics pages | the eleven client-supplied photographs below |
+
+**Two sources.** The eleven ODC Logistics photographs are the client's: five came from the
+RACE Innovations logistics pages and six were supplied in the client's brief and extracted from
+that PDF. The other 27 are **Unsplash photographs**, free for commercial use under the
+[Unsplash License](https://unsplash.com/license) with no attribution required — each slot's
+`credit` still records the photographer and source page, so any one can be traced or replaced.
+They were chosen to illustrate the subject, and none is captioned or described as a GTS facility,
+vehicle or team. `contactCity` is a view of Chennai, where the marketing office is; it is the slot
+most worth replacing with a photograph of the actual company.
+
+All photographs are WebP and rendered through `next/image`, which serves AVIF/WebP at the right
+size per breakpoint. [MediaFigure](src/components/MediaFigure.tsx)
+wraps a slot with the scrim and the spec-sheet plate caption, which is what keeps a photograph
+reading as part of the technical system rather than as decoration.
+
+**Keeping full-width banners sharp.** A banner photograph fills a 1920px screen, and more device
+pixels than that on a scaled laptop display, so four things are set deliberately:
+
+- **Source size.** The home banner slides are 3200px wide and every other Unsplash photograph
+  2800px, exported once from the original at WebP q86/q82. A 2000px source was being upscaled,
+  and its compression then compounded with next/image's own re-encode.
+- **Encode quality.** `images.qualities` in `next.config.ts` allows `[75, 85]`. The banners
+  (`Hero`, `PageHero`, `SplitHero`) pass `quality={85}` through `<Media>`; everything else stays at
+  the default 75. Next 16 rejects any other value, so add it to the list before using it.
+- **No film grain over photographs.** `bg-grain` is for flat navy panels; over a photo it reads as
+  blur. The blueprint grid stays over banners but is masked to fade out by 60% of the width, so
+  only the copy side carries it.
+- **In focus where the text sits.** A shallow depth of field turns the left half of a banner —
+  exactly where the headline is — into blur. The Automotive Parts slide was replaced for that
+  reason, and two slides (`slideComponents`, `slideConsulting`) are cut from the left 80% / 66% of
+  their originals so the subject lands in the open right half rather than behind the copy.
+
+On a phone the headline runs the full width of the banner, so `MediaScrim side="left"` is an even
+72% tint below `md` rather than the left-to-right gradient — white text still measures ~7:1 over
+the brightest part of the photograph.
+
+If a replaced photograph still looks stale in development, clear `.next/dev/cache/images` — the
+optimiser caches by URL, and the file name has not changed.
+
+**There is no film on the site.** A 51-second manufacturing film (`/videos/cisme.mp4`) used to sit
+on `/manufacturing`; it was removed at the client's request. It carried the RACE Innovations
+watermark and burned-in captions, and several frames carry a third-party channel watermark and OEM
+branding, so it was not mined for stills either. [VideoFigure](src/components/VideoFigure.tsx) is
+kept for a future film; a GTS-owned one should be supplied without burned-in text.
 
 The five taken from the RACE site are another company's assets — fine within the same group,
 worth confirming if any came from a stock library. One of them showed RACE branding on the load
@@ -208,7 +454,9 @@ AA needs 4.5, so the tightest has ~18% margin. If you lighten the scrim further,
 rather than eyeballing it: at one point in tuning these, two captions dropped to 3.77 and 4.14
 while still looking perfectly readable in a screenshot.
 
-Two kinds of artwork sit behind that:
+Two kinds of generated artwork remain in the codebase. Neither is rendered on a page at the
+moment — the scenes are the fallback for a slot without `src`, and the blueprints are
+unused since the heroes took photographs — but both still work:
 
 - **Scenes** ([PortScene](src/components/illustrations/PortScene.tsx),
   [FabricationScene](src/components/illustrations/FabricationScene.tsx)) — flat layered
@@ -217,29 +465,27 @@ Two kinds of artwork sit behind that:
   [AxleBlueprint](src/components/illustrations/AxleBlueprint.tsx)) — engineering side and
   front elevations with dimension lines, centre marks and figure captions.
 
-This was a deliberate choice, and worth understanding before changing it:
-
-- It is **honest**. A drawing of an axle claims nothing about equipment GTS owns, whereas
-  stock photography of a factory floor implies a facility.
-- It is **cheap and sharp**: ~4KB gzipped each, no image requests, perfect at any size,
-  and it inherits the brand colours instead of fighting them.
-- It is **on-brief**: the guidance says trade/automotive/industrial rather than IT/cloud,
-  and a technical drawing is more distinctly engineering than any generic stock shot.
+The site originally ran on these instead of photographs, for three reasons: a drawing of
+an axle claims nothing about equipment GTS owns; each is ~4KB and sharp at any size; and a
+technical drawing reads as engineering rather than IT/cloud. It now carries photographs at the
+client's request — every page had shown the same two scenes and four drawings over and over.
+The first reason still governs the photographs: none is captioned or described as a GTS
+facility, and the alt text says what is actually in the frame. Keep it that way, and keep
+generic IT/cloud imagery off the site.
 
 Each shape carries `pathLength="1"`, so the single `draw-line` keyframe stroke-draws the
 whole figure regardless of real path length. Add a new drawing by following the same
 pattern and pass it to `PageHero` via the `art` and `artLabel` props.
 
-If real photography is supplied later, it should sit **alongside** these drawings — full-
-bleed section imagery — rather than replacing them; the blueprints are what make the
-pages look like an engineering firm rather than a template.
+The drawings can go back into any `PageHero` through its `art` prop. Do not combine `art`
+with `media` on the same hero — the drawing sits on top of the photograph and neither reads.
 
 | Piece | What it does |
 | --- | --- |
 | [Reveal.tsx](src/components/Reveal.tsx) | Scroll-triggered fade/rise. One shared `IntersectionObserver` for the whole page; each element reveals once then stops being watched. |
 | [ScrollProgress.tsx](src/components/ScrollProgress.tsx) | Accent progress bar across the top. Writes to the DOM inside `requestAnimationFrame` — scrolling never triggers a React render. |
 | [SectionNav.tsx](src/components/SectionNav.tsx) | Sticky in-page nav with scroll-spy. See the two rules below. |
-| [FloatingActions.tsx](src/components/FloatingActions.tsx) | Mobile quote/call bar, back-to-top, and the optional WhatsApp button — all revealed after ~520px of scroll. |
+| [FloatingActions.tsx](src/components/FloatingActions.tsx) | The assistant launcher (always visible), plus Talk to Expert, back-to-top and the optional WhatsApp / Teams buttons, revealed after ~520px of scroll. |
 | [Spotlight.tsx](src/components/Spotlight.tsx) | Cursor-tracked highlight on dark bands. Mouse-only; flat without a pointer. |
 | [FAQ.tsx](src/components/FAQ.tsx) | `<details>` accordion with an animated panel: opening grows the grid row, closing shrinks it before the attribute drops. |
 | [CategoryFilter.tsx](src/components/CategoryFilter.tsx) | Vehicle-type chips **plus live search** across every category name, summary and product line. Combines with the chips, reports "Showing N of 8", supports arrow-key movement between chips, and its empty state doubles as a conversion prompt. |
@@ -334,9 +580,11 @@ commercial fields to sell one off the shelf.
 
 ### The nav dropdowns, and the header fit budget
 
-Two nav topics are dropdowns — see `primaryNav` in [src/data/site.ts](src/data/site.ts). Give an
+Five nav topics are dropdowns — see `primaryNav` in [src/data/site.ts](src/data/site.ts). Give an
 item a `children` array and it becomes one; `panelTitle` is the full topic name shown as the
-panel heading, while `label` is the shorter string the bar shows.
+panel heading, while `label` is the shorter string the bar shows. *Indian Vehicle Models
+Gallery* is the clearest example of why the two exist: the full name is 29 characters and would
+overflow the row on its own, so the bar says **Vehicle Models** and the panel says the rest.
 
 Three things about [Header.tsx](src/components/Header.tsx) are load-bearing:
 
@@ -358,18 +606,34 @@ are measured, not estimated:
 | --- | --- | --- |
 | Container inner width | 1216px | 1376px (header widens to `max-w-[1440px]`) |
 | Logo | 172px (descriptor hidden) | 289px |
-| Nav, 7 slots | 786px | 814px |
+| Nav, 7 slots | ~822px | ~850px |
 | CTA button | 179px | 179px |
-| **Headroom** | **47px** | **46px** |
+| **Headroom** | **~11px** | **~18px** |
 
-Four changes bought that headroom, and removing any one puts labels back to wrapping: Home
-dropped from the desktop bar, item padding at `px-2`, the row gap tightened at `xl`, and the
-logo descriptor hidden in the xl–2xl band. Nav items carry `shrink-0 whitespace-nowrap`
+⚠️ **The xl row was measured at 786px / 47px headroom when only two topics were dropdowns and
+the seventh label was "Resources".** Three things have moved since, and the figures above are
+*computed from those deltas, not re-measured in a browser*:
+
+| | xl |
+| --- | --- |
+| Three more topics became dropdowns, each gaining a caret (`w-3` + `gap-1.5`) | +54px |
+| "Resources" (9 chars) → "Vehicle Models" (14) | +38px |
+| Item padding `px-2`→`px-1.5`, caret `w-3`→`w-2.5` with `gap-1`, row `xl:gap-4`→`xl:gap-3` | −56px |
+| **Net** | **+36px** |
+
+**Re-measure this in a browser at 1280–1535px before trusting it.** The margin is now thin
+enough that one more character could blow it.
+
+Changes that bought the headroom, and removing any one puts labels back to wrapping: Home
+dropped from the desktop bar, item padding at `px-1.5`, the row gap tightened at `xl`, the
+caret kept small, and the logo descriptor hidden in the xl–2xl band. Nav items carry `shrink-0 whitespace-nowrap`
 deliberately — if the budget is ever blown again the row will visibly overflow rather than
 silently wrap two labels onto two lines, which is how the problem hid the first time.
 
-**Before adding a ninth slot or a longer label, re-measure.** Roughly 47px is about four
-characters. Adding a topic almost certainly means nesting it under an existing dropdown instead.
+**Before adding a ninth slot or a longer label, re-measure.** At ~11px the row now has barely
+one character in hand, and a caret costs 18px. Adding a topic almost certainly means nesting it
+under an existing dropdown instead; lengthening a label almost certainly means putting the long
+form in `panelTitle` and leaving the bar short, as *Vehicle Models* does.
 
 **The header must never change height on scroll.** It is a constant 70px, and this is
 load-bearing: it sits in normal flow, so animating its height reflows the entire page and
@@ -378,9 +642,14 @@ keep it out of the flow (shadow, colour, opacity) or put it above the sticky ele
 
 Three further rules the motion system holds to, all verified in the browser:
 
-1. **Nothing is hidden without JavaScript.** The reveal styles are scoped to a `.js` class
-   set by an inline script before first paint. No JS — or a crawler — sees every section
-   fully visible, with no flash either way.
+1. **Nothing is hidden without JavaScript.** The reveal styles sit inside
+   `@media (scripting: enabled)`, which the browser resolves before first paint. No JS — or a
+   crawler — sees every section fully visible, with no flash either way, and no script is
+   involved. (This replaced a `.js` class set by an inline `<script>` in the root layout, which
+   React 19 flagged: "Encountered a script tag while rendering React component". Don't
+   reintroduce a raw `<script>` in a component; `next/script`'s inline `beforeInteractive`
+   is not a substitute here either — it queues the code until Next's runtime loads, which
+   would bring the flash back.)
 2. **`prefers-reduced-motion: reduce` removes all of it,** including the ambient hero grid
    drift and the keyword ticker.
 3. **Nothing animates that would delay LCP.** Hero and page-hero `H1`s and lead paragraphs
@@ -414,15 +683,17 @@ the chips, the cards, the structured data and the sitemap-adjacent copy all foll
 
 The same holds for the two data-driven sections added after the MVP:
 
-- **A vehicle model** is one object appended to `vehicleModels`, plus its photograph dropped at
-  `public/images/vehicles/<slug>.webp`. Its page, its entry in the filters and the OEM chips,
-  its `Product` structured data, the coverage figures on the index and its sitemap entry all
-  derive from the object. Slugs are written out rather than generated, so a URL never changes
-  because a model name was edited. `segment` and `parts` are transcribed from the client's
-  model catalogue — the vehicle type and the "Priority Spare Parts / Components" line, split on
-  its semicolons — so edit them against that document rather than rewriting in place;
-  `partsNote` carries the catalogue's body-type qualifier verbatim where there is one
-  (tippers, tractor heads, the Magnite turbo).
+- **A vehicle model** is edited at [`/admin`](#the-admin-at-admin) once a database is
+  configured. Without one — and at build time before the first save — the schedule is the
+  `vehicleModels` array in `src/data/vehicle-models.ts`, one object per model with its
+  photograph at `public/images/vehicles/<slug>.webp`. Its page, its entry in the filters and
+  the OEM chips, its `Product` structured data, the coverage figures on the index and its
+  sitemap entry all derive from the object. Slugs are stable, so a URL does not change because
+  a model name was edited. `segment` and `parts` are transcribed from the client's model
+  catalogue — the vehicle type and the "Priority Spare Parts / Components" line, split on its
+  semicolons — so edit them against that document rather than rewriting in place; `partsNote`
+  carries the catalogue's body-type qualifier verbatim where there is one (tippers, tractor
+  heads, the Magnite turbo).
 - **A blog post** is one object appended to `blogPosts`, with its body as `heading` /
   `paragraph` / `list` / `note` blocks. There is deliberately no markdown parser in the
   bundle and no way for raw HTML to reach the page. Keep `publishedAt` as ISO `YYYY-MM-DD`;
@@ -441,6 +712,169 @@ Questions must stay unique within a set — the accordion keys on the question t
 Icons come from an inline set in [src/components/Icon.tsx](src/components/Icon.tsx); add a
 path there and reference it by name.
 
+### The admin at /admin
+
+The vehicle model schedule is the one part of the site the client edits themselves, so it is
+the one part backed by a database rather than a data file. Everything else on the site stays
+in `src/data/` and ships with the build.
+
+**Setting it up.** Point the `MYSQL_*` variables at an empty database and set `ADMIN_EMAIL`
+and `ADMIN_PASSWORD` (or `ADMIN_USERS`). Nothing else is needed: the tables are created on
+first use, and the catalogue in `src/data/vehicle-models.ts` is copied in as the starting
+content. In development, with nothing configured at all, `/admin` accepts
+`admin@gts.local` / `gts-admin` and says so on the sign-in page; in production an
+unconfigured admin refuses every sign-in.
+
+**What it edits.** Per model: OEM, model name, vehicle type, category, exported-from, the
+technical specification (engine, max power, max torque, transmission, GVW/payload),
+destination markets, the priority parts list, the parts note, the component photo grid, the
+URL, and the photograph. Models can be added and deleted. Photographs are stored in the
+database and served from `/api/vehicle-photo/<slug>/<version>` — the version is the upload
+time, so the URL is cached forever and changes the moment the picture does. Uploading a
+photograph does not touch `public/images/vehicles/`, which stays the fallback.
+
+**Bulk specifications.** `/admin/import` takes the client's spec sheet pasted straight out of
+Excel or Google Sheets — `Vehicle Type · OEM · Model · Engine / Displacement · Max Power ·
+Max Torque · Transmission · GVW / Payload`, in any column order, tab- or comma-separated.
+Rows are matched to the schedule on OEM and model, and *Preview changes* prints what each row
+would do before *Apply* writes anything. A sheet name that is a longer variant of a schedule
+name ("Ultra T.7 - Export" against "Ultra T.7") matches only when exactly one model could be
+meant, and the report says so. A row matching nothing is reported, never invented — a spec
+sheet has none of the parts, markets or photograph a model page needs.
+
+**How edits reach the public pages.** The model pages, the index, the home page, the
+components page and the sitemap are prerendered and revalidated on save, with a five-minute
+interval as a backstop. If the database is unreachable the readers fall back to the static
+catalogue and log it, so an outage degrades the site to its pre-admin behaviour rather than
+taking the pages down.
+
+**What the security is.** An email address and a static password, the password compared in
+constant time and one message covering both a wrong address and a wrong password. An HMAC-signed
+`httpOnly` session cookie lasting eight hours, five sign-in attempts per IP per ten minutes,
+every page and every write re-checking the session, and `/admin` disallowed in `robots.txt`
+and `noindex` in its metadata. There is no account management, no password reset and no audit
+trail — passwords are changed by editing the environment and restarting.
+
+---
+
+## 6b. Contact channels, search, the assistant and follow-up
+
+### There is no Call button
+
+The site publishes **no `tel:` link anywhere**. WhatsApp, email and the enquiry form are the
+routes, and every former Call action now points at `primaryContactAction()` in
+[src/data/site.ts](src/data/site.ts), which falls through WhatsApp → email → the enquiry form.
+An unset environment variable therefore degrades a CTA rather than breaking it.
+
+The office numbers are still *printed* — in the footer, on the contact page and in the mobile
+drawer — because a buyer checking who they are dealing with expects to see them. They are text,
+not links, and `formatDetection.telephone` is `false` in the root layout so iOS Safari cannot
+turn them back into tap-to-dial.
+
+Three variables switch the channels on, and each appears everywhere at once the moment it is
+set — header utility row, footer, mobile drawer, contact page, "Talk to an expert" band and the
+floating rail:
+
+| Variable | Channel |
+| --- | --- |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | The published email address |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | WhatsApp (digits with country code) |
+| `NEXT_PUBLIC_TEAMS_ID` | Microsoft Teams (a full URL, or a bare address) |
+
+### Country-based support
+
+[src/data/countries.ts](src/data/countries.ts) is the market schedule: 36 countries across five
+regions, each flagged `local` (a partner on the ground) or `direct` (handled from Chennai). It
+drives the selector on the contact page and the home page, and the search index — so "do you
+cover Kenya" resolves to a result that opens `/contact?market=KE#rfq` with the country field
+already filled in.
+
+**The individual partner names and desk details are still to come from Srikanth.** Add them to
+`partnerName` / `partnerNote` on the relevant market as they are confirmed; a market without
+one simply says enquiries are handled from the India desk. Nothing is invented.
+
+### Search
+
+`/api/search` searches one flat index built from the same data modules the pages render from
+([src/lib/site-index.ts](src/lib/site-index.ts)) — pages, component categories, all 96 vehicle
+models, articles, service scope, markets and all 110 FAQ entries. The index is **server-only**;
+it is reached through the API rather than shipped, which keeps ~100KB of catalogue out of the
+bundle. Open it from the header button or ⌘K / Ctrl-K.
+
+Add `?ai=1` and Claude writes a one-paragraph answer **from the retrieved entries only** — it
+cannot introduce a page keyword search did not find. The dialog requests it separately, 600ms
+after typing stops, so an abandoned search never reaches the model.
+
+### The assistant
+
+The launcher at the bottom right opens [ChatPanel](src/components/ChatPanel.tsx), which streams
+from `/api/chat`. **It is visible on every page from the first paint**, including /contact — it
+used to wait for 520px of scroll, which meant most visitors never saw it. Two details keep it out
+of the way:
+
+- It lifts above any element marked `data-float-clear` while that element sits along the bottom
+  of the viewport. The home banner's slide selector carries it, so the bubble never covers the
+  slide controls; once the banner scrolls away the bubble drops back into the corner.
+- A one-time hint ("Need a hand?…") appears six seconds into a first visit, only on desktop and
+  only while the bubble is lifted over the home banner — the one place the space above it is known
+  to be photograph rather than a button. Dismissing it or opening the chat sets
+  `gts-assistant-nudged` in localStorage.
+
+**Two answer modes, chosen per request** — `X-Assistant-Mode` on the response says which answered,
+and `GET /api/chat` returns `{"assistantConfigured":…,"mode":"ai"|"offline"}`.
+
+- **Offline** (no `ANTHROPIC_API_KEY`, and also the fallback if the API fails before any text is
+  sent) — [assistant-offline.ts](src/lib/assistant-offline.ts). Nothing is generated: greetings,
+  contact details and hours, and pricing questions get fixed wording drawn from `site.ts`;
+  everything else is answered with the best-matching entries from the site index. Matching is
+  stricter than the search dialog's — filler words are dropped, terms are lightly stemmed and
+  weighted by rarity (so "Tata" outweighs "components"), and an entry must cover at least half
+  the question by weight. A FAQ that covers the whole question is quoted as the answer. A
+  question the site does not cover gets "I couldn't find that" rather than a loose match.
+- **AI** (`ANTHROPIC_API_KEY` set) — every turn retrieves the most relevant index entries and
+  prepends them to the question, so Claude answers from the site rather than from memory.
+
+Both AI surfaces (chat and search) run `claude-opus-5` at low effort through
+`client.beta.messages`, because they send `fallbacks: "default"` (beta
+`server-side-fallback-2026-07-01`): if the model's safety classifiers decline a request, the API
+re-runs it server-side on Anthropic's recommended fallback model instead of returning a refusal.
+`max_tokens` is 4096 for chat and 2048 for search — thinking is on by default on this model and
+counts toward the limit, so the old 1024 / 400 could cut an answer off; a reply that still hits the
+limit is flagged in chat and dropped in search. The system prompt carries the site map and is sent
+as a cached block, so from the second request onward only the retrieved passages and the question
+are billed at full rate. It restates the site's content rules as hard constraints — no stock, no
+certification, no prices, no approvals, and links only to paths in the site map.
+
+Replies are rendered by a deliberately small markdown subset — paragraphs, line breaks, `- ` and
+`1.` lists, `**bold**` and links — built as React elements, so nothing in a reply can inject
+markup. Only on-site paths become links; any other URL renders as its label.
+
+The chat has its own rate limit, 30 messages per 10 minutes per client address. Behind a proxy
+that does not forward `X-Forwarded-For`, every visitor shares one bucket — see §3.
+
+### Automated reply and follow-up reminders
+
+The acknowledgement to the enquirer has always been sent by `/api/rfq`. Each enquiry now also
+gets a quotable reference (`GTS-XXXXXXXX`) and, when MySQL is configured, a row in an
+`enquiries` table ([src/lib/enquiry-log.ts](src/lib/enquiry-log.ts)) so an unanswered one can be
+chased:
+
+- **Stage 1, 24 hours** — nudges `RFQ_TO_EMAIL`, with a one-click link that closes the enquiry.
+- **Stage 2, 72 hours** — follows up with the enquirer. It does not promise a date.
+
+Point a scheduler at `https://your-domain/api/reminders?token=$REMINDER_SECRET` hourly. Running
+it more often is harmless — the stage counter is the guard, so nothing is sent twice. Add
+`&report=1` to list what is open without sending anything. Without `REMINDER_SECRET` the
+endpoint returns 404; without MySQL, enquiries send exactly as before and nothing is recorded.
+
+### AI discoverability
+
+`/llms.txt` is generated from the same index — the convention assistants and AI search crawlers
+look for. It carries the service summary, the market schedule, every page URL and, deliberately,
+the same "how to describe GTS accurately" rules, because a model reading it is exactly the
+audience that could otherwise infer stock or certification. AI crawlers are named and allowed
+explicitly in [robots.ts](src/app/robots.ts) — flip `allow` to `disallow` there to change that.
+
 ---
 
 ## 7. Before you go live
@@ -452,13 +886,27 @@ single edit, and nothing is invented in the meantime.
    wordmark as a placeholder. Drop the official file into `public/` and swap the mark for
    `next/image` (the header allows 40px height).
 2. **Public email address.** Deliberately blank. Set `NEXT_PUBLIC_CONTACT_EMAIL` and it
-   appears in the header bar, footer, contact page and Organization JSON-LD.
-3. **WhatsApp number.** The floating button is off until `NEXT_PUBLIC_WHATSAPP_NUMBER` is set.
-4. **Photography.** The ODC Logistics pages carry real photographs and every other `media.ts`
-   slot still renders its generated scene artwork, so nothing is missing (see *Artwork* in §5).
-   Confirm the licence on the ones in use — they came from the RACE Innovations site, and one
-   showed RACE branding on the load. For the remaining slots, supply WebP/AVIF via `next/image`
-   as full-bleed section imagery alongside the drawings. Do not substitute generic IT/cloud stock.
+   appears in the header utility row, footer, mobile drawer, contact page, the "Talk to an
+   expert" band and the Organization JSON-LD.
+3. **WhatsApp number.** WhatsApp is the site's primary conversational channel and every former
+   Call button now routes to it — but the whole thing is off until
+   `NEXT_PUBLIC_WHATSAPP_NUMBER` is set, and those CTAs fall back to the enquiry form until
+   then. This is the highest-value variable to fill in. See §6b.
+3b. **Microsoft Teams.** Off until `NEXT_PUBLIC_TEAMS_ID` is set.
+3c. **Local partners.** [countries.ts](src/data/countries.ts) marks which markets have a partner
+   on the ground, but the partner names and desk details are still to come from Srikanth. See §6b.
+3d. **`ANTHROPIC_API_KEY`.** Optional. Without it the assistant answers in offline mode from the
+   site index and search shows keyword results; with it both switch to Claude. Budget for it
+   before enabling — every AI conversation turn is a billed call.
+3e. **`REMINDER_SECRET` + MySQL and a scheduler**, if the follow-up reminders are wanted. See §6b.
+4. **Photography.** Every slot now carries a real photograph — eleven client-supplied (ODC
+   Logistics) and 27 from Unsplash (free commercial licence, credited per slot in
+   [media.ts](src/data/media.ts)). The Unsplash set illustrates each subject; it does not show
+   GTS's own premises, vehicles or people. Replace them with GTS photographs as those become
+   available, starting with `contactCity` (currently a view of Chennai) — each slot's `brief`
+   says what to shoot. Confirm the licence on the client-supplied ODC photographs too — five came
+   from the RACE Innovations site. Supply replacements as WebP/AVIF through `next/image`, and do
+   not substitute generic IT/cloud stock.
 5. **Model catalogue photographs.** The 96 vehicle shots came out of the client's catalogue,
    whose model pages are screenshots — so they are ~700×430 native at best, and nine are
    materially smaller (listed in §5). They carry no visible source attribution, but they are
@@ -467,7 +915,12 @@ single edit, and nothing is invented in the meantime.
    distributor material. The component photographs are stock-style part shots from the same
    document and want the same check.
 6. **Contact details.** Address and phone numbers are the ones published on the existing
-   GTS reference page. Confirm or replace them in `src/data/site.ts`.
+   GTS reference page. Confirm or replace them in `src/data/site.ts`. Note the numbers are
+   printed but never dialled — see §6b.
+6b. **Banner photography.** The home banner's four slides (`slideTrade`, `slideComponents`,
+   `slideManufacturing`, `slideConsulting`) carry Unsplash photographs, deliberately different
+   from the home page's service cards so nothing repeats on the page. If they are replaced, the
+   four should read as a set, because the banner cross-fades between them.
 7. **Privacy notice.** [src/app/privacy/page.tsx](src/app/privacy/page.tsx) is a factual
    starting point covering what the form actually does. Have it reviewed against your
    retention policy and applicable law before launch.
@@ -478,19 +931,40 @@ single edit, and nothing is invented in the meantime.
 
 ## 8. SEO implemented
 
-- Unique title, meta description, canonical URL, H1 and commercial CTA per page.
-- Keyword clusters mapped per page from section 11 of the brief, used naturally in
-  headings and body copy rather than repeated.
-- `sitemap.xml` and `robots.txt` generated from `NEXT_PUBLIC_SITE_URL`.
+- Unique title, meta description, canonical URL, H1 and commercial CTA per page. Exactly one
+  `<h1>` per page. The generated model-page titles and descriptions are built to fit a result
+  listing rather than written long and truncated by the engine — titles around 55-70
+  characters, descriptions at most 158, with the model name leading both because it is what
+  was searched for and what survives a trim. The description spends its room on the engine
+  line and then on as many part names as still fit.
+- Keyword clusters mapped per page, from section 11 of the brief and from the client's own
+  keyword sheet (67 rows, 50 unique once the repeats are removed). Every one of the 50 is
+  assigned to a single primary page in `pageSeo`, so pages do not compete with each other for
+  the same term, and every one appears in visible copy — 7 in a title or `<h1>`, the rest in
+  body text. The 14 that remain meta-only are compounds whose near-identical form is already
+  in the copy ("truck exporter India" for `Truck Exporter`), and forcing the exact string in
+  as well would read as stuffing for no gain.
+- `/automotive-parts` carries a **Genuine, OEM and aftermarket** section. It is the grade a
+  buyer names before they ask a price, it was the largest gap against the keyword sheet, and
+  the copy states plainly that naming a grade is not a claim of stock, of an OEM appointment
+  or of an authorisation — the same content rule as the rest of the site.
+- `sitemap.xml` and `robots.txt` generated from `NEXT_PUBLIC_SITE_URL`. Model pages carry
+  their real last-edited time from the database rather than the build date, so a crawler is
+  not told that all 96 changed every deploy. `robots.txt` disallows `/api/` and `/admin`, but
+  allows `/api/vehicle-photo/` — those are real image URLs, referenced by the model pages and
+  by their `Product` schema, and blocking them would keep admin-uploaded photographs out of
+  image search.
 - Open Graph and Twitter cards, backed by a generated 1200×630 branded image.
 - Structured data: `Organization` and `WebSite` site-wide; `Service` and `BreadcrumbList`
   per page; `FAQPage` on Import & Export, Automotive Parts, Manufacturing and Consulting
   (20 questions each), on the three ODC Logistics pages and on Vehicle Models; `ItemList` on
   the Vehicle Models and Blog indexes; `Product` with an
-  `OfferCatalog` of parts on each model page; `Blog` plus `BlogPosting` on the blog.
+  `OfferCatalog` of parts on each model page, carrying the technical specification as
+  `additionalProperty` so engine, power, torque, transmission and GVW are machine-readable
+  rather than only prose; `Blog` plus `BlogPosting` on the blog.
 - Internal linking: automotive parts → vehicle models → manufacturing → homologation → contact,
   with the blog linking into all of them.
-- Long-tail depth: 8 component category pages, 62 model pages (`<model> spare parts`) and 6
+- Long-tail depth: 8 component category pages, 96 model pages (`<model> spare parts`) and 6
   posts, none of which add a top-level navigation item.
 - All content is server-rendered. Both filters only toggle visibility, so every category, every
   model and every part name stays in the HTML for crawlers and for users without JavaScript.
@@ -558,10 +1032,11 @@ recorded here so nobody "fixes" them by accident.
    acceptance criterion. The eight component detail pages sit *below* Automotive Parts as
    long-tail SEO depth and are reachable from the category cards, not from the nav.
 
-3. **The nav is no longer six flat items — it is eight slots, two of which are dropdowns.**
-   ODC Logistics & Route Survey and the Vehicle Models / Blog pair were added after the MVP.
-   Grouping them under dropdown parents is what keeps the bar to eight slots while covering
-   eleven destinations, and it follows the pattern the client asked for.
+3. **The nav is no longer six flat items — it is eight slots, five of which are dropdowns.**
+   ODC Logistics & Route Survey and the Vehicle Models / Blog pair were added after the MVP, and
+   Import & Export, Manufacturing and Consulting became dropdowns when each was split into its
+   own pages. Grouping them under dropdown parents is what keeps the bar to eight slots while
+   covering nineteen destinations, and it follows the pattern the client asked for.
 
    **Home is deliberately absent from the desktop bar.** The logo is the home link and carries
    `aria-label="GTS Trade Solutions — home"`. Home is still the first item in the mobile menu.

@@ -1,3 +1,4 @@
+import type { IconName } from "@/components/Icon";
 import type { CategoryBlock } from "./types";
 
 /** Import & Export page — required sections, per section 6 of the MVP brief. */
@@ -240,3 +241,31 @@ export const indiaPartnerModule = {
     },
   ],
 };
+
+/** Sticky nav across the Import & Export pages. */
+export const tradeNav = [
+  { href: "/import-export", label: "Overview" },
+  { href: "/import-export/trade-categories", label: "Trade Categories" },
+  { href: "/import-export/vehicle-trade", label: "Vehicle Trade" },
+  { href: "/import-export/india-partner", label: "India Partner" },
+];
+
+/**
+ * The service list on the Import & Export banner.
+ *
+ * Derived from `tradeSections` so it cannot drift from what the module
+ * actually covers, then the three sub-pages are appended. The scope anchors
+ * point at the Trade Categories page, which is where those cards are
+ * published — they are inside a horizontal carousel there, which is a scroll
+ * container, so the anchor resolves and the card is scrolled into view.
+ */
+export const tradeServiceList: { label: string; icon: IconName; href: string }[] = [
+  ...tradeSections.slice(0, 5).map((section) => ({
+    label: section.title,
+    icon: section.icon,
+    href: `/import-export/trade-categories#${section.id}`,
+  })),
+  { label: "Vehicle Import & Export", icon: "truck", href: "/import-export/vehicle-trade" },
+  { label: "India Distribution & Dealership", icon: "handshake", href: "/import-export/india-partner" },
+  { label: "Trade Categories", icon: "package", href: "/import-export/trade-categories" },
+];

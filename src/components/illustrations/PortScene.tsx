@@ -3,8 +3,9 @@
  * it reads as imagery and can carry a full-bleed hero.
  *
  * This is the default artwork for photo slots until real photography is
- * supplied; see `src/data/media.ts`. Depth comes from four bands of receding
- * navy with a single amber container as the focal accent.
+ * supplied; see `src/data/media.ts`. Depth comes from four receding bands of the
+ * --scene-* ramp, with a single accent-coloured container as the focal point —
+ * both follow the module theme of whatever page the scene is placed on.
  */
 
 type Stack = { x: number; y: number; w: number; h: number; tone: string };
@@ -17,14 +18,14 @@ const stacks: Stack[] = [
     y: 470,
     w: 110,
     h: 46,
-    tone: i % 3 === 0 ? "#2a75b5" : "#154273",
+    tone: i % 3 === 0 ? "var(--scene-9)" : "var(--scene-6)",
   })),
   ...[140, 260, 500, 620, 860, 980, 1220, 1340].map((x, i) => ({
     x,
     y: 424,
     w: 110,
     h: 46,
-    tone: i % 4 === 1 ? "#2468a6" : "#2a75b5",
+    tone: i % 4 === 1 ? "var(--scene-8)" : "var(--scene-9)",
   })),
   // Mid row
   ...[40, 172, 304, 436, 568, 700, 832, 964, 1096, 1228, 1360, 1492].map((x, i) => ({
@@ -32,20 +33,20 @@ const stacks: Stack[] = [
     y: 566,
     w: 122,
     h: 52,
-    tone: i % 5 === 2 ? "#2a75b5" : "#1d5b93",
+    tone: i % 5 === 2 ? "var(--scene-9)" : "var(--scene-7)",
   })),
   ...[172, 436, 700, 964, 1228].map((x, i) => ({
     x,
     y: 514,
     w: 122,
     h: 52,
-    tone: i === 2 ? "#b54708" : "#2468a6",
+    tone: i === 2 ? "var(--color-accent-700)" : "var(--scene-8)",
   })),
 ];
 
 function Crane({ x, scale = 1 }: { x: number; scale?: number }) {
   return (
-    <g transform={`translate(${x} 0) scale(${scale})`} fill="#154273">
+    <g transform={`translate(${x} 0) scale(${scale})`} fill="var(--scene-6)">
       {/* Gantry legs */}
       <rect x={0} y={200} width={14} height={280} />
       <rect x={150} y={200} width={14} height={280} />
@@ -60,7 +61,7 @@ function Crane({ x, scale = 1 }: { x: number; scale?: number }) {
       {/* Trolley */}
       <rect x={186} y={162} width={26} height={18} />
       <rect x={197} y={180} width={4} height={54} />
-      <rect x={176} y={234} width={46} height={14} fill="#2468a6" />
+      <rect x={176} y={234} width={46} height={14} fill="var(--scene-8)" />
     </g>
   );
 }
@@ -77,12 +78,12 @@ export function PortScene({ className = "" }: { className?: string }) {
       {/* Sky wash */}
       <defs>
         <linearGradient id="port-sky" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#06172b" />
-          <stop offset="70%" stopColor="#0a2440" />
+          <stop offset="0%" stopColor="var(--color-navy-900)" />
+          <stop offset="70%" stopColor="var(--color-navy-800)" />
         </linearGradient>
         <radialGradient id="port-glow" cx="0.72" cy="0.52" r="0.5">
-          <stop offset="0%" stopColor="#2468a6" stopOpacity="0.55" />
-          <stop offset="100%" stopColor="#2468a6" stopOpacity="0" />
+          <stop offset="0%" stopColor="var(--scene-8)" stopOpacity="0.55" />
+          <stop offset="100%" stopColor="var(--scene-8)" stopOpacity="0" />
         </radialGradient>
       </defs>
 
@@ -90,10 +91,10 @@ export function PortScene({ className = "" }: { className?: string }) {
       <rect width="1600" height="760" fill="url(#port-glow)" />
 
       {/* Horizon */}
-      <rect x="0" y="392" width="1600" height="2" fill="#2468a6" opacity="0.5" />
+      <rect x="0" y="392" width="1600" height="2" fill="var(--scene-8)" opacity="0.5" />
 
       {/* Vessel on the horizon */}
-      <g fill="#123a63">
+      <g fill="var(--scene-5)">
         <path d="M1040 392 L1560 392 L1524 348 L1076 348 Z" />
         <rect x="1150" y="300" width="120" height="48" />
         <rect x="1178" y="272" width="60" height="28" />
@@ -119,7 +120,7 @@ export function PortScene({ className = "" }: { className?: string }) {
                 y={s.y + 7}
                 width={2}
                 height={s.h - 14}
-                fill="#06172b"
+                fill="var(--color-navy-900)"
                 opacity={0.35}
               />
             ))}
@@ -129,13 +130,13 @@ export function PortScene({ className = "" }: { className?: string }) {
       </g>
 
       {/* Quayside ground */}
-      <rect x="0" y="618" width="1600" height="142" fill="#081d34" />
-      <rect x="0" y="618" width="1600" height="2" fill="#2468a6" opacity="0.45" />
+      <rect x="0" y="618" width="1600" height="142" fill="var(--scene-2)" />
+      <rect x="0" y="618" width="1600" height="2" fill="var(--scene-8)" opacity="0.45" />
 
       {/* Foreground container, cropped by the frame */}
       <g>
-        <rect x="1120" y="640" width="560" height="150" fill="#0a2947" />
-        <rect x="1120" y="640" width="560" height="4" fill="#dc6803" opacity="0.75" />
+        <rect x="1120" y="640" width="560" height="150" fill="var(--scene-3)" />
+        <rect x="1120" y="640" width="560" height="4" fill="var(--color-accent-600)" opacity="0.75" />
         {Array.from({ length: 16 }, (_, i) => (
           <rect
             key={i}
@@ -143,14 +144,14 @@ export function PortScene({ className = "" }: { className?: string }) {
             y={660}
             width={4}
             height={110}
-            fill="#06172b"
+            fill="var(--color-navy-900)"
             opacity={0.4}
           />
         ))}
       </g>
 
       {/* Ground markings */}
-      <g fill="#2468a6" opacity="0.35">
+      <g fill="var(--scene-8)" opacity="0.35">
         {Array.from({ length: 12 }, (_, i) => (
           <rect key={i} x={i * 150} y={706} width={78} height={3} />
         ))}

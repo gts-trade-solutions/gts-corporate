@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "./Button";
 import { Icon } from "./Icon";
+import { marketByCode } from "@/data/countries";
 import {
   enquiryTypes,
   marketContextTypes,
@@ -173,6 +174,14 @@ export function RFQForm() {
         "Please confirm availability, lead time and pricing for the quantities noted above.",
       ].join("\n")
     : "";
+
+  /*
+    The market band and site search hand over a country (/contact?market=KE),
+    so someone arriving from "do you cover Kenya" does not retype it. Resolved
+    against the market list rather than trusted, so an unknown code seeds
+    nothing instead of putting arbitrary text in the field.
+  */
+  const countrySeed = marketByCode(searchParams.get("market") ?? "")?.name ?? "";
 
   // Only ever used as an internal path, and constrained to a slug charset.
   const modelSlug = searchParams.get("model") ?? "";
@@ -451,7 +460,15 @@ export function RFQForm() {
         </Field>
 
         <Field label="Country" htmlFor="country" required error={errors.country} valid={valid.country}>
-          <input {...input("country")} type="text" autoComplete="country-name" required minLength={2} />
+          <input
+            {...input("country")}
+            key={`country-${countrySeed}`}
+            defaultValue={countrySeed}
+            type="text"
+            autoComplete="country-name"
+            required
+            minLength={2}
+          />
         </Field>
 
         <Field label="Business email" htmlFor="email" required error={errors.email} valid={valid.email}>

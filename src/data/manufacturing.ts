@@ -1,3 +1,4 @@
+import type { IconName } from "@/components/Icon";
 import type { CategoryBlock } from "./types";
 
 /** Manufacturing page — required sections, per section 8 of the MVP brief. */
@@ -29,7 +30,7 @@ export const manufacturingSections: CategoryBlock[] = [
       "Structural fabrication",
       "Cutting and bending",
       "Welding",
-      "Machining",
+      "CNC machining",
       "Painting and coating",
       "Assembly support",
     ],
@@ -121,4 +122,27 @@ export const manufacturingProcess = [
     description:
       "Agreed batches are produced with inspection coordination, followed by packing, documentation and dispatch support.",
   },
+];
+
+/** Sticky nav across the Manufacturing pages. */
+export const manufacturingNav = [
+  { href: "/manufacturing", label: "Overview" },
+  { href: "/manufacturing/scope", label: "Manufacturing Scope" },
+  { href: "/manufacturing/process", label: "How a Project Runs" },
+];
+
+/**
+ * The service list on the Manufacturing banner.
+ *
+ * The six scope areas, anchored to the Manufacturing Scope page where their
+ * cards are published, plus the process page — seven entries, matching the
+ * density of the other module banners.
+ */
+export const manufacturingServiceList: { label: string; icon: IconName; href: string }[] = [
+  ...manufacturingSections.map((section) => ({
+    label: section.title,
+    icon: section.icon,
+    href: `/manufacturing/scope#${section.id}`,
+  })),
+  { label: "How a Project Runs", icon: "route", href: "/manufacturing/process" },
 ];

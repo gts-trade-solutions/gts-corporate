@@ -36,6 +36,53 @@ export type VehicleModelGroupId =
 /** Which of the catalogue's four component photo grids a model page prints. */
 export type ComponentSetId = "commercial" | "passenger" | "motorcycle" | "three-wheeler";
 
+/** The same two unions as runtime lists, so admin input can be validated. */
+export const vehicleModelGroupIds = [
+  "passenger-vehicles",
+  "two-wheelers",
+  "three-wheelers",
+  "commercial-vehicles",
+  "buses",
+] as const satisfies readonly VehicleModelGroupId[];
+
+export const componentSetIds = [
+  "commercial",
+  "passenger",
+  "motorcycle",
+  "three-wheeler",
+] as const satisfies readonly ComponentSetId[];
+
+/**
+ * The technical specification the client maintains for each model — the
+ * columns of their spec sheet, one field each, stored as the text they type
+ * rather than parsed numbers. Units, qualifiers and ranges ("103 kW / 140 PS
+ * @ 4,000 rpm") are part of the value and are printed verbatim.
+ *
+ * Every field is optional: models are added to the schedule long before the
+ * specification for them is confirmed, and a blank row is simply not printed.
+ */
+export type VehicleSpecs = {
+  /** Engine and displacement, e.g. "475 IDI TCIC diesel, 1,405 cc". */
+  engine?: string;
+  /** Max power, e.g. "70 hp @ 4,500 rpm". */
+  maxPower?: string;
+  /** Max torque, e.g. "135 Nm @ 3,200 rpm". */
+  maxTorque?: string;
+  /** Transmission, e.g. "GBS65, 5-speed MT". */
+  transmission?: string;
+  /** GVW, payload or other key weights, e.g. "GVW 2,260 kg; payload 1,000 kg". */
+  weights?: string;
+};
+
+/** Spec fields in the order the client's sheet lists them. */
+export const vehicleSpecFields = [
+  { key: "engine", label: "Engine / displacement" },
+  { key: "maxPower", label: "Max power" },
+  { key: "maxTorque", label: "Max torque" },
+  { key: "transmission", label: "Transmission" },
+  { key: "weights", label: "GVW / payload" },
+] as const satisfies readonly { key: keyof VehicleSpecs; label: string }[];
+
 export type VehicleModel = {
   /** Stable URL segment — /vehicle-models/<slug>. */
   slug: string;
@@ -53,6 +100,16 @@ export type VehicleModel = {
   /** Catalogue qualifier for this body type, verbatim. */
   partsNote?: string;
   components: ComponentSetId;
+  /** Technical specification. Absent until the client supplies the sheet. */
+  specs?: VehicleSpecs;
+  /** When the row was last edited. Absent for the shipped catalogue. */
+  updatedAt?: number;
+  /**
+   * Set only for models whose photograph was replaced from the admin — the
+   * timestamp doubles as the cache-busting segment of the photo URL. Models
+   * still using the shipped catalogue photograph leave it undefined.
+   */
+  photoUpdatedAt?: number;
 };
 
 export const vehicleModelGroups: {
@@ -184,6 +241,13 @@ export const vehicleModels: VehicleModel[] = [
       "Electrical and lighting parts",
     ],
     components: "commercial",
+    specs: {
+      engine: "475 IDI TCIC diesel, 1,405 cc",
+      maxPower: "70 hp @ 4,500 rpm",
+      maxTorque: "135 Nm @ 3,200 rpm",
+      transmission: "GBS65, 5-speed MT",
+      weights: "GVW 2,260 kg; payload 1,000 kg",
+    },
   },
   {
     slug: "tata-xenon-single-cab",
@@ -210,6 +274,13 @@ export const vehicleModels: VehicleModel[] = [
       "Electrical and lighting parts",
     ],
     components: "commercial",
+    specs: {
+      engine: "2.2 DICOR CRDi, 2,179 cc",
+      maxPower: "103 kW / 140 PS @ 4,000 rpm",
+      maxTorque: "320 Nm @ 1,700–2,700 rpm",
+      transmission: "5-speed MT",
+      weights: "Payload approx. 1,280 kg; GC 210 mm",
+    },
   },
   {
     slug: "tata-xenon-double-cab",
@@ -236,6 +307,13 @@ export const vehicleModels: VehicleModel[] = [
       "Electrical and lighting parts",
     ],
     components: "commercial",
+    specs: {
+      engine: "2.2 DICOR CRDi, 2,179 cc",
+      maxPower: "103 kW / 140 PS @ 4,000 rpm",
+      maxTorque: "320 Nm @ 1,700–2,700 rpm",
+      transmission: "5-speed MT",
+      weights: "Approx. 1-ton payload; 4x2 / 4x4 by market",
+    },
   },
   {
     slug: "tata-ultra-t6",
@@ -261,6 +339,13 @@ export const vehicleModels: VehicleModel[] = [
       "Electrical and lighting parts",
     ],
     components: "commercial",
+    specs: {
+      engine: "4SPCR TCIC diesel, 2,956 cc",
+      maxPower: "100 PS @ 2,800 rpm",
+      maxTorque: "300 Nm @ 1,000–2,200 rpm",
+      transmission: "G400, 5F+1R",
+      weights: "GVW 6,950 kg",
+    },
   },
   {
     slug: "tata-ultra-t7",
@@ -287,6 +372,13 @@ export const vehicleModels: VehicleModel[] = [
       "Electrical and lighting parts",
     ],
     components: "commercial",
+    specs: {
+      engine: "NG CR Euro-VI, 3.3 L",
+      maxPower: "155 PS @ 2,600 rpm",
+      maxTorque: "450 Nm @ 1,500–2,200 rpm",
+      transmission: "Tata GBS 550",
+      weights: "GVW 7,490 kg; WB 3,920 mm",
+    },
   },
   {
     slug: "tata-ultra-t9",
@@ -2587,8 +2679,16 @@ export const vehicleModels: VehicleModel[] = [
 /** Full display name, e.g. "Bajaj Auto Pulsar NS200". */
 export const modelName = (item: VehicleModel) => `${item.oem} ${item.model}`;
 
-/** Catalogue photograph for a model. Every model in the schedule has one. */
-export const vehicleImage = (item: VehicleModel) => `/images/vehicles/${item.slug}.webp`;
+/**
+ * Photograph for a model. One uploaded through the admin is served from the
+ * database, with its update time in the path — so the URL can be cached hard
+ * and still change the moment the picture does. Everything else falls back to
+ * the catalogue photograph shipped in the public folder.
+ */
+export const vehicleImage = (item: VehicleModel) =>
+  item.photoUpdatedAt
+    ? `/api/vehicle-photo/${item.slug}/${item.photoUpdatedAt}`
+    : `/images/vehicles/${item.slug}.webp`;
 
 export const vehicleImageAlt = (item: VehicleModel) =>
   `${modelName(item)} — ${item.segment.toLowerCase()}, photographed against a plain background.`;
@@ -2605,13 +2705,12 @@ export const vehicleModelGroup = (id: VehicleModelGroupId) =>
 export const modelsInGroup = (id: VehicleModelGroupId) =>
   vehicleModels.filter((item) => item.group === id);
 
-/** Every OEM in the schedule, in first-appearance order — drives the OEM chips. */
-export const vehicleModelOems = [...new Set(vehicleModels.map((item) => item.oem))];
+/** Every OEM in a schedule, in first-appearance order — drives the OEM chips. */
+export const oemsOf = (models: VehicleModel[]) => [...new Set(models.map((item) => item.oem))];
 
-/** Every destination market named in the schedule, de-duplicated and sorted. */
-export const vehicleModelMarkets = [
-  ...new Set(vehicleModels.flatMap((item) => item.markets)),
-].sort((a, b) => a.localeCompare(b));
+/** Every destination market named in a schedule, de-duplicated and sorted. */
+export const marketsOf = (models: VehicleModel[]) =>
+  [...new Set(models.flatMap((item) => item.markets))].sort((a, b) => a.localeCompare(b));
 
 /**
  * Query string that carries a model and a component selection into the RFQ
@@ -2629,3 +2728,30 @@ export function enquiryHref(item: VehicleModel, parts: string[] = []) {
   if (parts.length > 0) params.set("parts", parts.join(", "));
   return `/contact?${params.toString()}#rfq`;
 }
+
+/**
+ * The service list on the Vehicle Models banner.
+ *
+ * Each vehicle group points at the component category it maps to, so the five
+ * entries are five different destinations rather than five links to the same
+ * anchor — the group filters on this page are client state and deliberately
+ * not URL-addressable, so there is nothing to deep-link them to. The schedule
+ * itself is the last entry.
+ */
+const GROUP_TO_PART_CATEGORY: Record<VehicleModelGroupId, string> = {
+  "passenger-vehicles": "cars-lcvs",
+  "two-wheelers": "two-wheelers",
+  "three-wheelers": "three-wheelers",
+  "commercial-vehicles": "trucks",
+  buses: "buses",
+};
+
+export const vehicleModelsServiceList: { label: string; icon: IconName; href: string }[] = [
+  ...vehicleModelGroups.map((group) => ({
+    label: `${group.title} — parts`,
+    icon: group.icon,
+    href: `/automotive-parts/${GROUP_TO_PART_CATEGORY[group.id]}`,
+  })),
+  { label: "Browse the model schedule", icon: "search", href: "#models" },
+  { label: "Trade & automotive insights", icon: "article", href: "/blog" },
+];

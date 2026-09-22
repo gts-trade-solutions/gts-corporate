@@ -611,11 +611,24 @@ export const odcSections: AlternatingSection[] = [
 
 /* ------------------------------------------------------- Route survey page */
 
-/** The topic strip beneath the route-survey hero. */
+/**
+ * The topic strip beneath every ODC hero.
+ *
+ * `odcTopicTabs` is the section itself — the ODC equivalent of the `tradeNav` /
+ * `manufacturingNav` / `consultingNav` lists the other modules use, and it is
+ * rendered on all three ODC pages so each one can reach the other two.
+ *
+ * `odcRelatedTabs` are the modules an ODC enquiry most often continues into.
+ * They are passed separately so the strip can divide them off from the pages
+ * that actually belong to this section.
+ */
 export const odcTopicTabs: { label: string; href: string }[] = [
   { label: "ODC Logistics", href: "/odc-logistics" },
   { label: "Route Survey Reports", href: "/odc-logistics/route-survey" },
   { label: "Reports", href: "/odc-logistics/reports" },
+];
+
+export const odcRelatedTabs: { label: string; href: string }[] = [
   { label: "Manufacturing", href: "/manufacturing" },
   { label: "Consulting", href: "/consulting" },
 ];
@@ -716,7 +729,7 @@ export const reportListings: ReportListing[] = [
     description:
       "Assessment of a port's suitability for a given consignment: approach roads, gate and internal circulation, berth and jetty access, laydown availability, ground bearing at the wharf, and the road or barge interface for the onward leg.",
     regions: ["Asia Pacific", "India"],
-    slot: "odcJetty",
+    slot: "multimodalTransport",
   },
   {
     id: "heavy-cargo-movement",
@@ -725,6 +738,6 @@ export const reportListings: ReportListing[] = [
     description:
       "The executable plan for a specific consignment: trailer and prime-mover configuration, axle loading, lifting method at both ends, traffic windows, escort and utility coordination, and the point-by-point actions required along the surveyed route.",
     regions: ["Asia Pacific", "India", "Africa", "Middle East"],
-    slot: "odcConsultation",
+    slot: "loadingLashing",
   },
 ];

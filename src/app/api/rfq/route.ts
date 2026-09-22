@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { upload } from "@/data/enquiry";
+import { newReference, recordEnquiry } from "@/lib/enquiry-log";
 import { mailerConfigured, sendRfqEmails, type RfqAttachment } from "@/lib/mailer";
 import { clientKey, rateLimit } from "@/lib/rate-limit";
 import {
@@ -93,8 +94,19 @@ export async function POST(request: Request) {
     })),
   );
 
+  /* One reference per enquiry, quoted in both emails and used as the key the
+     follow-up reminders chase. Generated whether or not the database is
+     configured, so the enquirer always has something to quote. */
+  const reference = newReference();
+
   try {
-    const result = await sendRfqEmails(parsed.data, attachments);
+    const result = await sendRfqEmails(parsed.data, attachments, reference);
+
+    if (result.delivered) {
+      // Recorded only once the lead is actually away, and never allowed to
+      // throw — see recordEnquiry.
+      await recordEnquiry(reference, parsed.data);
+    }
 
     if (!result.delivered) {
       if (process.env.NODE_ENV === "production") {
@@ -103,7 +115,7 @@ export async function POST(request: Request) {
           {
             ok: false,
             errors: {
-              form: "We could not send your enquiry right now. Please call us or try again shortly.",
+              form: "We could not send your enquiry right now. Please email us or try again shortly.",
             },
           },
           { status: 503 },
@@ -121,7 +133,7 @@ export async function POST(request: Request) {
       {
         ok: false,
         errors: {
-          form: "Something went wrong while sending your enquiry. Please try again or call us.",
+          form: "Something went wrong while sending your enquiry. Please try again, or email us.",
         },
       },
       { status: 502 },
@@ -131,7 +143,7 @@ export async function POST(request: Request) {
   return NextResponse.json<RfqResponse>({
     ok: true,
     message:
-      "Thank you — your enquiry has been received. Our team will review the details and respond to you by email.",
+      `Thank you — your enquiry has been received under reference ${reference}. Our team will review the details and respond to you by email.`,
   });
 }
 

@@ -2,39 +2,47 @@
 
 /*
   GTS Trade Solutions — design tokens.
-  Predominantly white, strong dark text, navy brand + one amber accent.
+  Supplied GTS identity: navy, red and charcoal on a white ground.
   Industrial/trade visual language (no IT/cloud gradients).
 */
 @theme {
-  --color-ink: #08192b;
-  --color-ink-soft: #3c5063;
-  --color-ink-muted: #64748b;
+  --color-ink: #001a41;
+  --color-ink-soft: #4b4b4b;
+  --color-ink-muted: #656d78;
 
-  --color-navy-50: #eef4fb;
-  --color-navy-100: #d8e5f3;
-  --color-navy-200: #b2c9e3;
-  --color-navy-600: #16487a;
-  --color-navy-700: #103458;
-  --color-navy-800: #0a2440;
-  --color-navy-900: #06172b;
+  --color-navy-50: #eef2f8;
+  --color-navy-100: #dce5f2;
+  --color-navy-200: #b5c8e2;
+  --color-navy-600: #245486;
+  --color-navy-700: #123b6b;
+  --color-navy-800: #002357;
+  --color-navy-900: #001a41;
 
-  --color-accent-50: #fff6ed;
-  --color-accent-100: #ffe9d3;
-  --color-accent-500: #f38a1e;
-  --color-accent-600: #dc6803;
-  --color-accent-700: #b54708;
+  --color-accent-50: #fff2f2;
+  --color-accent-100: #ffe0e0;
+  --color-accent-500: #ff5555;
+  --color-accent-600: #e10000;
+  --color-accent-700: #bf0000;
 
-  --color-steel-50: #f6f8fa;
-  --color-steel-100: #edf1f5;
-  --color-steel-200: #dde4ec;
-  --color-steel-300: #c4cfdb;
+  --color-steel-50: #f7f7f8;
+  --color-steel-100: #f0f1f3;
+  --color-steel-200: #dfe2e7;
+  --color-steel-300: #c6ccd5;
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
   --font-display: var(--font-archivo), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
 
-  --shadow-card: 0 1px 2px rgb(8 25 43 / 0.06), 0 8px 24px -12px rgb(8 25 43 / 0.18);
-  --shadow-lift: 0 2px 4px rgb(8 25 43 / 0.06), 0 18px 40px -18px rgb(8 25 43 / 0.3);
-  --shadow-raise: 0 2px 4px rgb(8 25 43 / 0.08), 0 16px 32px -16px rgb(8 25 43 / 0.28);
+  /*
+    Card elevation. The colour is an rgb() channel triplet from --shadow-rgb
+    rather than a literal, because Tailwind inlines these values into the
+    utility at build time — a var() here is what lets a module theme cast its
+    shadows in its own ground. Deliberately not color-mix(): that cannot be
+    resolved at build time either, and its fallback for a browser without
+    color-mix support is a fully opaque shadow.
+  */
+  --shadow-card: 0 1px 2px rgb(var(--shadow-rgb) / 0.06), 0 8px 24px -12px rgb(var(--shadow-rgb) / 0.18);
+  --shadow-lift: 0 2px 4px rgb(var(--shadow-rgb) / 0.06), 0 18px 40px -18px rgb(var(--shadow-rgb) / 0.3);
+  --shadow-raise: 0 2px 4px rgb(var(--shadow-rgb) / 0.08), 0 16px 32px -16px rgb(var(--shadow-rgb) / 0.28);
 
   /* Shared motion language — one easing curve, three speeds. */
   --ease-out-industrial: cubic-bezier(0.22, 1, 0.36, 1);
@@ -88,8 +96,26 @@
       in normal flow and any height change reflows the whole page.
     */
     --header-h: 70px;
+    /* Channels the card shadows are cast in; each module theme overrides it. */
+    --shadow-rgb: 0 35 87;
     /* Offset anchor targets so the sticky header + section nav never cover a heading. */
     scroll-padding-top: 8.5rem;
+
+    /*
+      Depth ramp for the generated scene illustrations (PortScene,
+      FabricationScene), back of the frame to front. Kept out of @theme because
+      it needs no utilities — the SVGs read it directly, and each module theme
+      re-derives it from its own ground ramp so the artwork retints with the page.
+    */
+    --scene-1: #061a30;
+    --scene-2: #081d34;
+    --scene-3: #0b2743;
+    --scene-4: #0e2f52;
+    --scene-5: #123a63;
+    --scene-6: #154273;
+    --scene-7: #1d5b93;
+    --scene-8: #2468a6;
+    --scene-9: #2a75b5;
   }
 
   body {
@@ -118,23 +144,31 @@
   }
 
   /*
-    Scroll-reveal. The hidden state is scoped to `.js` — which is set by an
-    inline script before first paint — so a browser without JavaScript, or a
-    crawler, always sees fully visible content.
+    Scroll-reveal. The hidden state applies only under
+    `@media (scripting: enabled)`, so a browser without JavaScript, or a
+    crawler, always sees fully visible content — decided by the browser before
+    first paint, with no script at all. (It used to be a `.js` class set by an
+    inline <script> in the root layout; React 19 warns about <script> elements
+    rendered by a component, and this needs none. A browser too old for the
+    media feature simply shows everything, without the animation.)
   */
-  .js [data-reveal] {
-    opacity: 0;
-    transform: translateY(18px);
-    transition:
-      opacity var(--dur-slow) var(--ease-out-industrial),
-      transform var(--dur-slow) var(--ease-out-industrial);
-    transition-delay: var(--reveal-delay, 0ms);
-    will-change: opacity, transform;
-  }
+  @media (scripting: enabled) {
+    [data-reveal] {
+      opacity: 0;
+      transform: translateY(18px);
+      transition:
+        opacity var(--dur-slow) var(--ease-out-industrial),
+        transform var(--dur-slow) var(--ease-out-industrial);
+      transition-delay: var(--reveal-delay, 0ms);
+      /* Deliberately no will-change: it would permanently promote every reveal on
+         the page to its own compositor layer — including the ~20,000px model grid
+         on /vehicle-models. Browsers already composite a running transition. */
+    }
 
-  .js [data-reveal].is-visible {
-    opacity: 1;
-    transform: none;
+    [data-reveal].is-visible {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   /* Motion is decoration here — remove all of it when the user asks. */
@@ -143,8 +177,8 @@
       scroll-behavior: auto;
     }
 
-    .js [data-reveal],
-    .js [data-reveal].is-visible {
+    [data-reveal],
+    [data-reveal].is-visible {
       opacity: 1;
       transform: none;
       transition: none;
@@ -194,7 +228,7 @@
     transition: opacity var(--dur-base) var(--ease-out-industrial);
     background: radial-gradient(
       380px circle at var(--mx, 50%) var(--my, 50%),
-      rgb(220 104 3 / 0.16),
+      color-mix(in srgb, var(--color-accent-600) 16%, transparent),
       transparent 65%
     );
   }
@@ -241,33 +275,35 @@
     accent rule can draw itself and a list can step in without any extra JS.
     Both are inert outside a reveal, and inert without JavaScript.
   */
-  .js [data-reveal] .rule-draw {
-    transform: scaleX(0);
-    transform-origin: left;
-    transition: transform var(--dur-slow) var(--ease-out-industrial) 120ms;
-  }
+  @media (scripting: enabled) {
+    [data-reveal] .rule-draw {
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform var(--dur-slow) var(--ease-out-industrial) 120ms;
+    }
 
-  .js [data-reveal].is-visible .rule-draw {
-    transform: scaleX(1);
-  }
+    [data-reveal].is-visible .rule-draw {
+      transform: scaleX(1);
+    }
 
-  .js [data-reveal] .stagger-item {
-    opacity: 0;
-    transform: translateY(10px);
-    transition:
-      opacity 460ms var(--ease-out-industrial),
-      transform 460ms var(--ease-out-industrial);
-    transition-delay: var(--stagger-delay, 0ms);
-  }
+    [data-reveal] .stagger-item {
+      opacity: 0;
+      transform: translateY(10px);
+      transition:
+        opacity 460ms var(--ease-out-industrial),
+        transform 460ms var(--ease-out-industrial);
+      transition-delay: var(--stagger-delay, 0ms);
+    }
 
-  .js [data-reveal].is-visible .stagger-item {
-    opacity: 1;
-    transform: none;
+    [data-reveal].is-visible .stagger-item {
+      opacity: 1;
+      transform: none;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .js [data-reveal] .rule-draw,
-    .js [data-reveal] .stagger-item {
+    [data-reveal] .rule-draw,
+    [data-reveal] .stagger-item {
       opacity: 1;
       transform: none;
       transition: none;
@@ -422,7 +458,198 @@
 
 /* Blueprint grid for light surfaces — the white-line version is invisible here. */
 @utility bg-blueprint-ink {
-  background-image: linear-gradient(rgb(8 25 43 / 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgb(8 25 43 / 0.07) 1px, transparent 1px);
+  background-image: linear-gradient(
+      color-mix(in srgb, var(--color-navy-800) 7%, transparent) 1px,
+      transparent 1px
+    ),
+    linear-gradient(90deg, color-mix(in srgb, var(--color-navy-800) 7%, transparent) 1px, transparent 1px);
   background-size: 28px 28px;
+}
+
+
+/* ── Module themes ────────────────────────────────────────────
+
+  Every section of the site carries its own colour theme. Rather than
+  re-styling components, each module re-declares the design tokens on a wrapper
+  element (see `ModuleTheme` and the per-segment layouts), so every existing
+  `bg-accent-600`, `text-navy-700`, `shadow-card` and `spotlight` inside it
+  resolves to that module's value instead. No component knows a theme exists.
+
+  Two rules keep the site coherent rather than merely colourful:
+
+  1. The chrome never changes. Header, footer, floating actions and the scroll
+     progress bar sit outside the wrapper, so GTS navy and signal red still
+     frame every page and hold the brand together.
+  2. Every ramp is built to the same value structure as the navy/red original,
+     and each accent was checked against its own ground and against white. The
+     weakest pairing in any module is at or above the base theme's contrast, so
+     nothing here trades legibility for variety.
+
+  Accent hues are spaced 25-77° apart, so no two modules read as the same
+  colour, and each ground is the deep, desaturated end of a hue that belongs
+  with the accent it carries.
+
+  Home, Contact and Privacy deliberately keep the brand navy and signal red:
+  they are the pages where GTS should be speaking as itself, not as a section.
+*/
+
+/*
+  Tokens every module derives from its own ground, so a theme only has to
+  declare the two ramps below. These resolve on the same element that sets
+  --color-navy-*, which is what makes the derivation follow the module.
+*/
+[data-module] {
+  /* Headings and the muted body tone pick up a trace of the module ground. */
+  --color-ink: var(--color-navy-900);
+  --color-ink-muted: color-mix(in oklab, var(--color-navy-900) 42%, #8b9199);
+
+  /* Light section surfaces, rules and borders, tinted the same way. */
+  --color-steel-50: color-mix(in oklab, var(--color-navy-900) 3%, #fafafb);
+  --color-steel-100: color-mix(in oklab, var(--color-navy-900) 5%, #f3f4f6);
+  --color-steel-200: color-mix(in oklab, var(--color-navy-900) 8%, #e5e7ea);
+  --color-steel-300: color-mix(in oklab, var(--color-navy-900) 12%, #ccd1d8);
+
+  /* Scene artwork, rebuilt from the module ground rather than the navy one. */
+  --scene-1: color-mix(in oklab, var(--color-navy-900) 78%, #000000);
+  --scene-2: color-mix(in oklab, var(--color-navy-900) 88%, #000000);
+  --scene-3: color-mix(in oklab, var(--color-navy-800) 90%, #000000);
+  --scene-4: var(--color-navy-800);
+  --scene-5: color-mix(in oklab, var(--color-navy-700) 86%, #000000);
+  --scene-6: var(--color-navy-700);
+  --scene-7: color-mix(in oklab, var(--color-navy-700) 45%, var(--color-navy-600));
+  --scene-8: var(--color-navy-600);
+  --scene-9: color-mix(in oklab, var(--color-navy-600) 82%, #ffffff);
+}
+
+/* Harbour — deep petrol ground, cargo amber. Containers, cranes, quayside. */
+[data-module="import-export"] {
+  --shadow-rgb: 6 50 62;
+
+  --color-navy-50: #eef6f9;
+  --color-navy-100: #d2e9f0;
+  --color-navy-200: #a7d1dd;
+  --color-navy-600: #1a7690;
+  --color-navy-700: #0d5266;
+  --color-navy-800: #06323e;
+  --color-navy-900: #042630;
+
+  --color-accent-50: #fff8ec;
+  --color-accent-100: #fdeac9;
+  --color-accent-500: #f5a524;
+  --color-accent-600: #b45309;
+  --color-accent-700: #8f4109;
+}
+
+/* Gunmetal — machined graphite ground, electric cyan. Components and tooling. */
+[data-module="automotive-parts"] {
+  --shadow-rgb: 37 40 44;
+
+  --color-navy-50: #f2f3f4;
+  --color-navy-100: #e2e4e6;
+  --color-navy-200: #c6c9cd;
+  --color-navy-600: #5f656b;
+  --color-navy-700: #3a3f45;
+  --color-navy-800: #25282c;
+  --color-navy-900: #191a1c;
+
+  --color-accent-50: #edfafd;
+  --color-accent-100: #cbeef7;
+  --color-accent-500: #38c6e4;
+  --color-accent-600: #0e7490;
+  --color-accent-700: #0b5c74;
+}
+
+/* Blueprint — drawing-office slate, engineering blue. Fabrication and build. */
+[data-module="manufacturing"] {
+  --shadow-rgb: 19 38 57;
+
+  --color-navy-50: #eff3f8;
+  --color-navy-100: #dbe4ef;
+  --color-navy-200: #b6c6dc;
+  --color-navy-600: #3f6288;
+  --color-navy-700: #26405c;
+  --color-navy-800: #132639;
+  --color-navy-900: #0d1826;
+
+  --color-accent-50: #eff5ff;
+  --color-accent-100: #dbe7fe;
+  --color-accent-500: #6aa6ff;
+  --color-accent-600: #1d4ed8;
+  --color-accent-700: #1e40af;
+}
+
+/* Meridian — indigo night, violet. Advisory work: quieter, less industrial. */
+[data-module="consulting"] {
+  --shadow-rgb: 29 24 72;
+
+  --color-navy-50: #f2f0fb;
+  --color-navy-100: #e0dcf5;
+  --color-navy-200: #c5bfe8;
+  --color-navy-600: #5346a8;
+  --color-navy-700: #322a70;
+  --color-navy-800: #1d1848;
+  --color-navy-900: #151235;
+
+  --color-accent-50: #f6f2ff;
+  --color-accent-100: #e9ddff;
+  --color-accent-500: #a78bfa;
+  --color-accent-600: #7c3aed;
+  --color-accent-700: #5b21b6;
+}
+
+/* Convoy — asphalt ground, hi-vis lime. Road movement, escorts, night runs. */
+[data-module="odc-logistics"] {
+  --shadow-rgb: 35 39 27;
+
+  --color-navy-50: #f4f5f0;
+  --color-navy-100: #e3e6da;
+  --color-navy-200: #c6cbb8;
+  --color-navy-600: #5f6650;
+  --color-navy-700: #3a4030;
+  --color-navy-800: #23271b;
+  --color-navy-900: #1a1c13;
+
+  --color-accent-50: #f7fce9;
+  --color-accent-100: #e9f8cc;
+  --color-accent-500: #a3e635;
+  --color-accent-600: #4d7c0f;
+  --color-accent-700: #3f6212;
+}
+
+/* Depot — deep yard green, emerald. The catalogue: what is on the shelf. */
+[data-module="vehicle-models"] {
+  --shadow-rgb: 19 43 35;
+
+  --color-navy-50: #eef7f3;
+  --color-navy-100: #d6e9e1;
+  --color-navy-200: #b0cec3;
+  --color-navy-600: #3a6d5c;
+  --color-navy-700: #20463a;
+  --color-navy-800: #132b23;
+  --color-navy-900: #101f1a;
+
+  --color-accent-50: #edfbf5;
+  --color-accent-100: #c8f2e0;
+  --color-accent-500: #34d399;
+  --color-accent-600: #047857;
+  --color-accent-700: #036548;
+}
+
+/* Journal — ink plum, berry. Editorial rather than technical. */
+[data-module="blog"] {
+  --shadow-rgb: 46 28 64;
+
+  --color-navy-50: #f6f1fa;
+  --color-navy-100: #e6dcee;
+  --color-navy-200: #cfc0dc;
+  --color-navy-600: #75548f;
+  --color-navy-700: #4a2e63;
+  --color-navy-800: #2e1c40;
+  --color-navy-900: #221530;
+
+  --color-accent-50: #fff1f6;
+  --color-accent-100: #fbd9e8;
+  --color-accent-500: #f472b6;
+  --color-accent-600: #be185d;
+  --color-accent-700: #9d174d;
 }
