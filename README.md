@@ -41,7 +41,7 @@ same values in your hosting provider's dashboard for production.
 | `SMTP_SECURE` | No | Defaults to `true` on port 465, `false` otherwise. |
 | `RFQ_FROM_EMAIL` | No | From address. Defaults to `SMTP_USER`. Use a domain you control. |
 | `NEXT_PUBLIC_CONTACT_EMAIL` | No | Public enquiry address shown in header, footer and contact page. **Left blank by design** — see §7. |
-| `NEXT_PUBLIC_WHATSAPP_NUMBER` | No | Digits with country code, e.g. `919600122296`. WhatsApp is the site's primary conversational channel — every former Call action routes to it. Blank, those CTAs fall back to email, then the enquiry form. |
+| `NEXT_PUBLIC_WHATSAPP_NUMBER` | No | Digits with country code, e.g. `919003031527`. WhatsApp is the site's primary conversational channel — every former Call action routes to it. Blank, those CTAs fall back to email, then the enquiry form. |
 | `NEXT_PUBLIC_TEAMS_ID` | No | Microsoft Teams: a full meeting/chat URL, or a bare Teams address, which is wrapped into a chat deep link. Blank hides every Teams surface. |
 | `ANTHROPIC_API_KEY` | No | Switches the site assistant to AI answers and adds the AI answer in search. Unset, the assistant still answers — from the site index, in offline mode — and search returns keyword results only. See §6b. |
 | `REMINDER_SECRET` | No | Shared token for the enquiry follow-up job at `/api/reminders`. Unset, the endpoint returns 404 and no reminder is ever sent. Needs the `MYSQL_*` variables too. See §6b. |

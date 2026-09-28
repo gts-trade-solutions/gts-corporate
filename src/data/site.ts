@@ -75,7 +75,7 @@ export const contact = {
    * so a "Call" action would send people down a channel nobody is staffing.
    * `whatsappHref` below is what every former call button now points at.
    */
-  phones: ["+91 96001 22296", "+91 78457 99668", "+91 93848 57579"],
+  phones: ["+91 44 6610 8114", "+91 80720 98352"],
   /**
    * Public enquiry address, shown in the header utility row, the footer, the
    * contact page and the mobile menu. Set NEXT_PUBLIC_CONTACT_EMAIL and it
@@ -86,11 +86,12 @@ export const contact = {
   /**
    * WhatsApp is the primary conversational channel — the floating button, the
    * header action, the mobile menu and every CTA band route to it. Digits with
-   * the country code, no spaces or symbols (e.g. 919600122296).
+   * the country code, no spaces or symbols. Defaults to the published WhatsApp
+   * line; NEXT_PUBLIC_WHATSAPP_NUMBER overrides it.
    */
   whatsapp: {
-    enabled: Boolean(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER),
-    number: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER ?? "",
+    enabled: true,
+    number: process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "919003031527",
     message: "Hello GTS Trade Solutions, I would like to discuss a requirement.",
   },
   /**
