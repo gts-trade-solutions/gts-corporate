@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Container } from "./Container";
 import { Logo } from "./Logo";
-import { contact, footerEnquiryLinks, mailtoHref, navDestinations, site, teamsHref, whatsappHref } from "@/data/site";
+import { contact, footerEnquiryLinks, mailtoHref, navDestinations, site, teamsHref } from "@/data/site";
 
 /* Every destination in the nav except Home — the logo already links there.
    Flattened, so the pages inside a dropdown are reachable from the footer too.
@@ -86,21 +86,6 @@ export function Footer() {
                       <path d="m3 7 9 6 9-6" />
                     </svg>
                     {contact.email}
-                  </a>
-                </li>
-              ) : null}
-              {whatsappHref() ? (
-                <li>
-                  <a
-                    href={whatsappHref()}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-2 font-semibold transition-all duration-200 hover:translate-x-0.5 hover:text-accent-500"
-                  >
-                    <svg viewBox="0 0 24 24" className="h-4 w-4 shrink-0" fill="currentColor" aria-hidden="true">
-                      <path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.46 1.32 4.96L2 22l5.25-1.38a9.9 9.9 0 0 0 4.79 1.22h.01c5.46 0 9.91-4.45 9.91-9.91S17.5 2 12.04 2Zm0 18.15h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.19 8.19 0 0 1-1.26-4.38c0-4.54 3.7-8.23 8.25-8.23a8.23 8.23 0 0 1 8.24 8.24c0 4.54-3.7 8.23-8.24 8.23Z" />
-                    </svg>
-                    WhatsApp
                   </a>
                 </li>
               ) : null}
