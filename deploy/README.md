@@ -1,132 +1,95 @@
-# Deploying to a VPS at gtstradesolutions.com
+# Deploying gtstradesolutions.com
 
-The site runs as a Node server (`next start`) on the VPS, behind nginx, which
-handles HTTPS with a free Let's Encrypt certificate. The scripts in this folder
-do the setup. This page lists the steps that have to be done by hand.
+The site runs on the shared VPS at `72.62.228.202`, next to the other sites
+hosted there, and is set up the same way they are:
 
-| File | What it is |
-| --- | --- |
-| [setup.sh](setup.sh) | First-time server setup: Node, nginx, certificate, service, first build. |
-| [deploy.sh](deploy.sh) | Publishes the latest `main` from GitHub. Run it after every push. |
-| [gts.service](gts.service) | systemd unit that keeps the site running and starts it on boot. |
-| [nginx/gtstradesolutions.com.conf](nginx/gtstradesolutions.com.conf) | nginx site: HTTPS, the www and HTTP redirects, upload size. |
+- The app runs under **PM2** as `gts-corporate`, owned by the `deploy` user, on
+  `127.0.0.1:3006`. `pm2-deploy.service` restarts it after a reboot.
+- The code lives in `/home/deploy/gts-corporate/`:
+  - `releases/` holds one folder per deploy.
+  - `current` is a link to the live release.
+  - `shared/.env.local` holds the settings.
+- **nginx** serves `https://gtstradesolutions.com` with a Let's Encrypt
+  certificate, and redirects `www.` and plain HTTP to it.
 
-**The server.** Ubuntu 22.04 or 24.04 with root SSH access. 2 GB of memory is
-comfortable. With 1 GB the script adds swap, because the build needs it. If the
-provider has a firewall in its control panel, open ports 22, 80 and 443 there.
+| File | What it is | Runs as |
+| --- | --- | --- |
+| [deploy.sh](deploy.sh) | Builds `main` from GitHub into a new release and switches PM2 to it. | `deploy`, no sudo |
+| [server-setup.sh](server-setup.sh) | One-time setup: the nginx site, the certificate and a MySQL database for `/admin`. | `sudo`, once |
+| [nginx/gtstradesolutions.com.conf](nginx/gtstradesolutions.com.conf) | The nginx site. | — |
 
-**The address.** The site is served at `https://gtstradesolutions.com`, and
-`www.` redirects to it. To use `www.` as the main address instead, change
-`NEXT_PUBLIC_SITE_URL` and swap the two names in the nginx file.
+DNS is at GoDaddy (`ns43/ns44.domaincontrol.com`). The `@` A record points to
+`72.62.228.202`, and `www` is a CNAME to `@`.
 
 ---
 
-## 1. Point the domain at the server (GoDaddy)
+## First-time setup
 
-The domain's DNS is at GoDaddy (nameservers `ns43/ns44.domaincontrol.com`). It
-currently points at GoDaddy's own parking/forwarding servers, `15.197.148.33`
-and `3.33.130.190`.
-
-1. GoDaddy → **My Products** → `gtstradesolutions.com` → **DNS**.
-2. Under **Forwarding**, delete any forwarding set on the domain. If forwarding
-   is left on, it overrides the records below.
-3. Under **DNS Records**:
-   - Edit the **A** record named `@`. Set the value to the VPS IP address and
-     the TTL to 600 seconds. Delete any other `A` or `AAAA` records for `@`.
-   - Keep `www` as a **CNAME** pointing to `@`. It is already set up that way.
-   - Leave all other records alone.
-4. Wait until the domain resolves to the VPS. This usually takes a few minutes,
-   and up to an hour:
-
-   ```bash
-   nslookup gtstradesolutions.com 8.8.8.8
-   nslookup www.gtstradesolutions.com 8.8.8.8
-   ```
-
-Steps 2 and 3 can be done while DNS is still updating. Step 4 needs DNS to have
-switched over, because that is when the certificate can be issued.
-
-## 2. First run of the setup script
+**1. Settings and first build** (as `deploy`):
 
 ```bash
-ssh root@YOUR_VPS_IP
-git clone https://github.com/gts-trade-solutions/gts-corporate.git /root/gts-setup
-bash /root/gts-setup/deploy/setup.sh you@example.com --with-mysql
+git clone --depth 1 https://github.com/gts-trade-solutions/gts-corporate.git /tmp/gts
+bash /tmp/gts/deploy/deploy.sh     # first run: writes ~/gts-corporate/shared/.env.local and stops
+nano ~/gts-corporate/shared/.env.local
+bash /tmp/gts/deploy/deploy.sh     # builds, starts gts-corporate in PM2, saves the process list
+rm -rf /tmp/gts
 ```
 
-- `you@example.com` is the address Let's Encrypt sends certificate expiry
-  notices to.
-- `--with-mysql` installs MySQL on the VPS and creates the database. Without
-  MySQL, `/admin` is read-only and enquiries are not logged for follow-up.
-  Leave the flag off to point at an existing database instead.
+[README.md §2](../README.md) describes every setting. The first run fills in
+`NEXT_PUBLIC_SITE_URL` and `ADMIN_SESSION_SECRET`. The script refuses to build
+while any setting still holds an `example.com` placeholder. Replace the
+placeholder or empty the setting. Enquiries need the `SMTP_*`, `RFQ_TO_EMAIL`
+and `RFQ_FROM_EMAIL` settings; without them the enquiry form shows an error in
+production.
 
-This run installs everything and writes the settings file,
-`/var/www/gts/shared/.env.local`, then stops.
-
-## 3. Fill in the settings
+**2. nginx, certificate and database** (once, with sudo):
 
 ```bash
-nano /var/www/gts/shared/.env.local
+sudo bash /home/deploy/gts-corporate/current/deploy/server-setup.sh
 ```
 
-[README.md §2](../README.md) describes every variable. The script has already
-filled in `NEXT_PUBLIC_SITE_URL`, `ADMIN_SESSION_SECRET` and, with
-`--with-mysql`, the `MYSQL_*` values. Before going live you need:
+If the server has more than one Let's Encrypt account, certbot asks which one
+to use. The script then:
 
-- `RFQ_TO_EMAIL`, `RFQ_FROM_EMAIL`, `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`,
-  `SMTP_PASSWORD`. Without these, the enquiry form returns an error in
-  production rather than dropping the enquiry.
-- `ADMIN_EMAIL` and `ADMIN_PASSWORD`, or `ADMIN_USERS`.
-- Optional: `NEXT_PUBLIC_CONTACT_EMAIL`, `NEXT_PUBLIC_WHATSAPP_NUMBER`,
-  `NEXT_PUBLIC_GA_ID`, `ANTHROPIC_API_KEY`, `REMINDER_SECRET`.
-
-The script refuses to continue while any setting still holds an `example.com`
-placeholder. Replace the placeholder or empty the setting.
-
-## 4. Second run: build and go live
-
-```bash
-bash /root/gts-setup/deploy/setup.sh you@example.com --with-mysql
-```
-
-This run builds the site, starts it, checks that the domain points at this
-server, obtains the certificate and switches nginx on. When it finishes,
-`https://gtstradesolutions.com` is live. The certificate renews itself.
+- Creates the MySQL database and user `gts_corporate`, provided neither name
+  is taken.
+- Writes their credentials into `.env.local`.
+- Restarts the app, after which `/admin` can save changes.
 
 Then go through the checks in [README.md §9, *After the first deploy*](../README.md).
 
 ## Publishing updates
 
-Push to `main`, then on the server:
+Push to `main`, then on the server, as `deploy`:
 
 ```bash
-sudo bash /var/www/gts/current/deploy/deploy.sh
+bash ~/gts-corporate/current/deploy/deploy.sh
 ```
 
-Each update is built in a new folder under `/var/www/gts/releases/`. The site
-switches over only once the build has succeeded and the new release responds.
-If it does not respond, the script switches back to the previous release. The
-last three releases are kept.
+The site switches over only once the new build has succeeded and the new
+release responds. If it does not respond, the script switches back to the
+previous release. The last three releases are kept.
 
 To go back to an earlier release by hand:
 
 ```bash
-ls -1t /var/www/gts/releases/
-sudo ln -sfn /var/www/gts/releases/<folder> /var/www/gts/current
-sudo systemctl restart gts
+ls -1t ~/gts-corporate/releases/
+ln -sfn ~/gts-corporate/releases/<folder> ~/gts-corporate/current
+pm2 restart gts-corporate
 ```
 
 ## Changing a setting
 
+Edit `~/gts-corporate/shared/.env.local`:
+
 - `NEXT_PUBLIC_*` values are built into the pages. After changing one, run
   `deploy.sh`.
-- Any other value is read when the server starts. Run
-  `sudo systemctl restart gts`.
+- Any other value is read when the app starts. Run `pm2 restart gts-corporate`.
 
 ## Enquiry follow-up reminders
 
 The reminders need `REMINDER_SECRET` and MySQL to be set. Then run
-`sudo crontab -e` and add this line, using the secret's value:
+`crontab -e` as `deploy` and add this line, using the secret's value:
 
 ```cron
 0 * * * * curl -fsS "https://gtstradesolutions.com/api/reminders?token=YOUR_SECRET" > /dev/null
@@ -135,9 +98,9 @@ The reminders need `REMINDER_SECRET` and MySQL to be set. Then run
 ## Day-to-day commands
 
 ```bash
-systemctl status gts          # is it running
-journalctl -u gts -f          # live server log
-sudo systemctl restart gts    # restart after a settings change
-sudo nginx -t                 # check the nginx config after editing it
-sudo certbot renew --dry-run  # confirm certificate renewal works
+pm2 describe gts-corporate        # status, uptime, restarts
+pm2 logs gts-corporate            # live server log
+pm2 restart gts-corporate         # restart after a settings change
+sudo nginx -t                     # check the nginx config after editing it
+sudo certbot renew --dry-run      # confirm certificate renewal works
 ```

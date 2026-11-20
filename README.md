@@ -1002,10 +1002,10 @@ limiter uses it).
 
 **The production VPS (gtstradesolutions.com)**
 
-[deploy/README.md](deploy/README.md) covers the production setup: Ubuntu, nginx, Let's
-Encrypt, a systemd service and release-by-release updates. It also covers the GoDaddy DNS
-change. `deploy/setup.sh` does the first-time install, and `deploy/deploy.sh` publishes each
-update.
+The site runs on a shared VPS under PM2, behind nginx with a Let's Encrypt certificate.
+[deploy/README.md](deploy/README.md) covers the setup. `deploy/deploy.sh` publishes each
+update as the `deploy` user. `deploy/server-setup.sh` holds the one-time sudo steps: the
+nginx site, the certificate and the database.
 
 **After the first deploy**
 
