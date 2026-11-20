@@ -1000,6 +1000,13 @@ npm run start        # serves on $PORT, default 3000
 Run it behind a reverse proxy that terminates TLS and forwards `X-Forwarded-For` (the rate
 limiter uses it).
 
+**The production VPS (gtstradesolutions.com)**
+
+[deploy/README.md](deploy/README.md) covers the production setup: Ubuntu, nginx, Let's
+Encrypt, a systemd service and release-by-release updates. It also covers the GoDaddy DNS
+change. `deploy/setup.sh` does the first-time install, and `deploy/deploy.sh` publishes each
+update.
+
 **After the first deploy**
 
 1. Visit `/api/rfq` and confirm `mailerConfigured: true`.

@@ -16,6 +16,14 @@ if (process.env.NODE_ENV === "production" && !process.env.NEXT_PUBLIC_SITE_URL?.
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    serverActions: {
+      // The admin's model form sends its photograph (up to 3 MB, see
+      // PHOTO_MAX_BYTES) through a server action alongside the text fields.
+      // The 1 MB default would reject most photographs before they arrive.
+      bodySizeLimit: "4mb",
+    },
+  },
   images: {
     formats: ["image/avif", "image/webp"],
     // 75 is the default for everything; 85 is requested only by the
