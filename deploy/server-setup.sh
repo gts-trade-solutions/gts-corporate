@@ -79,18 +79,24 @@ else
   exit 0
 fi
 
-taken=$(sql -N -e "SELECT (SELECT COUNT(*) FROM information_schema.schemata WHERE schema_name = '$DB')
-                         + (SELECT COUNT(*) FROM mysql.user WHERE user = '$DB')")
+# An empty database of this name is reused, so a run interrupted after creating
+# it can simply be repeated. A user of this name, or a database with tables in
+# it, belongs to something else and stops the step.
+taken=$(sql -N -e "SELECT (SELECT COUNT(*) FROM mysql.user WHERE user = '$DB')
+                         + (SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = '$DB')")
 if (( taken > 0 )); then
-  echo "A MySQL database or user named '$DB' already exists. Skipped, nothing changed." >&2
+  echo "A MySQL user named '$DB', or a '$DB' database with tables in it, already exists. Skipped, nothing changed." >&2
   exit 0
 fi
 
-pass=$(openssl rand -hex 24)
+# Upper and lower case, a digit and a symbol, which validate_password asks for
+# on this server, using only characters that need no quoting in .env.local.
+pass="Gts1-$(openssl rand -hex 20)"
+# Users first: if the password policy refuses, nothing has been created.
 sql <<SQL
-CREATE DATABASE $DB CHARACTER SET utf8mb4;
 CREATE USER '$DB'@'localhost' IDENTIFIED BY '$pass';
 CREATE USER '$DB'@'127.0.0.1' IDENTIFIED BY '$pass';
+CREATE DATABASE IF NOT EXISTS $DB CHARACTER SET utf8mb4;
 GRANT ALL PRIVILEGES ON $DB.* TO '$DB'@'localhost';
 GRANT ALL PRIVILEGES ON $DB.* TO '$DB'@'127.0.0.1';
 SQL
