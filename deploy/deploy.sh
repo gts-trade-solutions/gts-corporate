@@ -93,7 +93,7 @@ switch_to() {
 
 answers() {
   for _ in $(seq 1 60); do
-    curl -fsS -o /dev/null "http://127.0.0.1:$PORT/" && return 0
+    curl -fs -o /dev/null "http://127.0.0.1:$PORT/" && return 0
     sleep 1
   done
   return 1
