@@ -26,6 +26,30 @@ const trail = [
 
 const stagger = (index: number) => ({ "--stagger-delay": `${index * 70}ms` }) as CSSProperties;
 
+/**
+ * The vehicle type whose photograph leads each category card. The segment
+ * banners are already in the In Depth grid further down, so the cards use a
+ * different picture from the same page.
+ */
+const cardType: Record<string, string> = {
+  "passenger-vehicles": "compact-suvs",
+  "two-wheelers": "classic-motorcycles",
+  "three-wheelers": "cargo-three-wheelers",
+  "commercial-vehicles": "light-trucks",
+  buses: "coaches",
+  "electric-vehicles": "electric-two-wheelers",
+  "special-purpose-vehicles": "ambulances",
+  "agricultural-equipment": "high-horsepower-tractors",
+  "construction-equipment": "compactors",
+};
+
+const creditLink = "underline decoration-steel-300 underline-offset-2 hover:text-ink";
+
+/** The In Depth banners that need a printed credit (the CC0 ones do not). */
+const bannerCredits = vehicleSegments.flatMap((segment) =>
+  segment.heroCredit ? [{ id: segment.id, title: segment.shortTitle, credit: segment.heroCredit }] : [],
+);
+
 export default function VehicleTradePage() {
   return (
     <>
@@ -54,10 +78,11 @@ export default function VehicleTradePage() {
           <CardCarousel className="mt-12" label="Vehicle trade categories">
             {vehicleCategories.map((category, index) => {
               const segment = findVehicleSegment(category.id);
+              const photo = segment?.types.find((type) => type.id === cardType[category.id])?.photo;
               return (
                 <div key={category.id} className="stagger-item h-full" style={stagger(index)}>
                   <ProductCategoryCard
-                    block={category}
+                    block={photo ? { ...category, photo } : category}
                     compact
                     href={segment ? vehicleSegmentHref(segment.id) : undefined}
                     linkLabel={segment ? `Explore ${segment.types.length} types in depth` : undefined}
@@ -135,6 +160,26 @@ export default function VehicleTradePage() {
               </li>
             ))}
           </ul>
+        </Reveal>
+        {/* The cards are links, so the banners' Creative Commons credits are
+            listed here rather than on the pictures. */}
+        <Reveal>
+          <p className="mt-6 text-[12.5px] leading-relaxed text-ink-muted">
+            Photographs via Wikimedia Commons:{" "}
+            {bannerCredits.map(({ id, title, credit }, index) => (
+              <span key={id}>
+                {title} —{" "}
+                <a href={credit.url} target="_blank" rel="noopener noreferrer" className={creditLink}>
+                  {credit.name}
+                </a>
+                ,{" "}
+                <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer license" className={creditLink}>
+                  {credit.licence}
+                </a>
+                {index < bannerCredits.length - 1 ? "; " : "."}
+              </span>
+            ))}
+          </p>
         </Reveal>
       </Section>
 

@@ -1,5 +1,6 @@
 import type { IconName } from "@/components/Icon";
 import type { MediaKey } from "./media";
+import type { Photo } from "./photos";
 
 export type Card = {
   /** Optional sub-items, listed under the description. */
@@ -22,6 +23,11 @@ export type CategoryBlock = {
   items: string[];
   /** Photograph across the top of the card, and the banner of its detail page. */
   media?: MediaKey;
+  /**
+   * A credited photograph for the top of the card (see card-photos.ts). Used
+   * instead of `media` when both are set; its credit is printed on the card.
+   */
+  photo?: Photo;
 };
 
 export type Faq = {

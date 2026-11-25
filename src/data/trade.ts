@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/Icon";
+import { cardPhotos } from "./card-photos";
 import type { CategoryBlock } from "./types";
 
 /** Import & Export page — required sections, per section 6 of the MVP brief. */
@@ -7,6 +8,7 @@ export const tradeSections: CategoryBlock[] = [
     id: "general-trade",
     title: "General Trade",
     icon: "globe",
+    media: "slideTrade",
     summary:
       "International sourcing and trade facilitation for general products, industrial goods and machinery, matched to buyer specification, volume and destination market.",
     items: [
@@ -20,6 +22,7 @@ export const tradeSections: CategoryBlock[] = [
     id: "food-products",
     title: "Food Products",
     icon: "leaf",
+    photo: cardPhotos.food,
     summary:
       "Trade in legally tradable food categories, coordinated with documentation and inspection requirements of the destination market.",
     items: [
@@ -33,6 +36,7 @@ export const tradeSections: CategoryBlock[] = [
     id: "cosmetics-personal-care",
     title: "Cosmetics & Personal Care",
     icon: "sparkle",
+    photo: cardPhotos.cosmetics,
     summary:
       "Finished personal-care products together with the packaging and ingredient inputs used to produce them.",
     items: [
@@ -46,6 +50,7 @@ export const tradeSections: CategoryBlock[] = [
     id: "steel-metals",
     title: "Steel & Metals",
     icon: "layers",
+    photo: cardPhotos.steel,
     summary:
       "Steel and metal products supplied to grade, dimension and finish requirements for construction, fabrication and manufacturing buyers.",
     items: [
@@ -60,6 +65,7 @@ export const tradeSections: CategoryBlock[] = [
     id: "raw-materials",
     title: "Raw Materials",
     icon: "package",
+    photo: cardPhotos.rawMaterials,
     summary:
       "Industrial inputs for manufacturing operations, sourced against grade, specification and annual volume.",
     items: [
@@ -73,6 +79,7 @@ export const tradeSections: CategoryBlock[] = [
     id: "vehicle-import-export",
     title: "Vehicle Import & Export",
     icon: "truck",
+    media: "vehicleTrade",
     summary:
       "Import and export of complete vehicles and equipment between markets, from single units to fleet and project quantities.",
     items: [
@@ -90,6 +97,7 @@ export const tradeSections: CategoryBlock[] = [
     id: "india-distribution",
     title: "India Distribution & Dealership",
     icon: "handshake",
+    media: "indiaPartner",
     summary:
       "Distribution, dealership, representation and market-development support for overseas brands building a presence in India.",
     items: [
@@ -103,6 +111,7 @@ export const tradeSections: CategoryBlock[] = [
     id: "trade-support",
     title: "Trade Support",
     icon: "route",
+    media: "clearingForwarding",
     summary:
       "The coordination work around a transaction — so an enquiry becomes a shipment without gaps between the parties involved.",
     items: [

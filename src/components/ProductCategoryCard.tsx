@@ -1,13 +1,38 @@
+import Image from "next/image";
 import { ArrowLink } from "./Button";
 import { Icon } from "./Icon";
 import { Media } from "./Media";
 import { componentsLabel } from "@/data/parts";
+import type { PhotoCredit } from "@/data/photos";
 import type { CategoryBlock } from "@/data/types";
 
+const PHOTO_SIZES = "(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw";
+
 /**
- * Category card used for trade sections, vehicle segments, part categories
- * and manufacturing scope: icon + heading + summary + scope list, led by a
- * photograph when the block carries a `media` slot.
+ * The photographer and licence, over the corner of the photograph. The
+ * Creative Commons photographs require both to be shown with the picture.
+ */
+function PhotoCreditTag({ credit }: { credit: PhotoCredit }) {
+  const link = "underline decoration-white/40 underline-offset-2 hover:decoration-white";
+  return (
+    <p className="absolute bottom-0 right-0 z-10 max-w-[calc(100%-1rem)] rounded-tl-sm bg-navy-900/75 px-2 py-1 text-[10.5px] leading-snug text-white/90">
+      Photo:{" "}
+      <a href={credit.url} target="_blank" rel="noopener noreferrer" className={link}>
+        {credit.name}
+      </a>
+      ,{" "}
+      <a href={credit.licenceUrl} target="_blank" rel="noopener noreferrer license" className={link}>
+        {credit.licence}
+      </a>
+    </p>
+  );
+}
+
+/**
+ * Category card used for trade sections, vehicle segments, part categories,
+ * consulting scope, manufacturing scope and route-survey obstructions: icon +
+ * heading + summary + scope list, led by a photograph when the block carries a
+ * credited `photo` or a `media` slot.
  */
 export function ProductCategoryCard({
   block,
@@ -29,11 +54,23 @@ export function ProductCategoryCard({
       id={block.id}
       className="keyline group relative flex h-full scroll-mt-40 flex-col overflow-hidden rounded-sm border border-steel-200 bg-white transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-navy-200 hover:shadow-lift"
     >
-      {block.media ? (
+      {block.photo ? (
+        <div className="relative aspect-[16/9] shrink-0 overflow-hidden bg-navy-900">
+          <Image
+            src={block.photo.src}
+            alt={block.photo.alt}
+            fill
+            sizes={PHOTO_SIZES}
+            className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+            style={block.photo.position ? { objectPosition: block.photo.position } : undefined}
+          />
+          {block.photo.credit ? <PhotoCreditTag credit={block.photo.credit} /> : null}
+        </div>
+      ) : block.media ? (
         <div className="relative aspect-[16/9] shrink-0 overflow-hidden bg-navy-900">
           <Media
             slot={block.media}
-            sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+            sizes={PHOTO_SIZES}
             className="transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
           />
         </div>

@@ -1,22 +1,11 @@
 import type { IconName } from "@/components/Icon";
 import type { MediaKey } from "../media";
+import type { Photo, PhotoCredit } from "../photos";
 import type { VehicleModelGroupId } from "../vehicle-models";
 
-export type PhotoCredit = {
-  name: string;
-  licence: string;
-  licenceUrl: string;
-  /** The file's page on Wikimedia Commons. */
-  url: string;
-};
-
-export type SegmentPhoto = {
-  src: string;
-  alt: string;
-  credit?: PhotoCredit;
-  /** Catalogue cut-outs on a white ground are shown whole rather than cropped. */
-  fit?: "cover" | "contain";
-};
+export { cc } from "../photos";
+export type { PhotoCredit };
+export type SegmentPhoto = Photo;
 
 export type SegmentType = {
   /** Anchor on the page, e.g. #tippers. */
@@ -93,21 +82,6 @@ export type VehicleSegment = {
   specify: string[];
   /** `product` value carried into the enquiry form. */
   enquiryProduct: string;
-};
-
-/** A Creative Commons credit for a Wikimedia Commons file. */
-export const cc = (name: string, licence: string, file: string): PhotoCredit => {
-  const version = licence.match(/\d\.\d/)?.[0] ?? "4.0";
-  const kind = licence.includes("BY-SA") ? "by-sa" : "by";
-  return {
-    name,
-    licence,
-    licenceUrl:
-      licence === "CC0"
-        ? "https://creativecommons.org/publicdomain/zero/1.0/"
-        : `https://creativecommons.org/licenses/${kind}/${version}/`,
-    url: `https://commons.wikimedia.org/wiki/File:${file}`,
-  };
 };
 
 /** Shared links, so every page points at the same places. */

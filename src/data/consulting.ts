@@ -1,3 +1,4 @@
+import { cardPhotos } from "./card-photos";
 import type { CategoryBlock } from "./types";
 
 /**
@@ -48,6 +49,7 @@ export const consultingBlocks: {
         id: "active-fire-protection",
         title: "Active fire protection",
         icon: "flame",
+        photo: cardPhotos.activeFire,
         summary: "Detection and suppression systems selected for the risk profile of the site or application.",
         items: [
           "Fire alarm systems",
@@ -63,6 +65,7 @@ export const consultingBlocks: {
         id: "passive-fire-protection",
         title: "Passive fire protection",
         icon: "shieldCheck",
+        photo: cardPhotos.passiveFire,
         summary: "Containment and compartmentation products that slow fire and smoke spread.",
         items: [
           "Fire-rated doors and partitions",
@@ -76,6 +79,7 @@ export const consultingBlocks: {
         id: "fire-support-services",
         title: "Support services",
         icon: "clipboard",
+        photo: cardPhotos.fireServices,
         summary: "The coordination around a fire-safety scope, delivered directly or through our partner network.",
         items: [
           "Product supply",
@@ -110,6 +114,7 @@ export const consultingBlocks: {
         id: "vehicle-maintenance",
         title: "Vehicle maintenance",
         icon: "truck",
+        photo: cardPhotos.maintenance,
         summary: "Workshop and on-site maintenance across commercial vehicle types.",
         items: [
           "Trucks",
@@ -123,6 +128,7 @@ export const consultingBlocks: {
         id: "aggregate-service",
         title: "Aggregate & system service",
         icon: "gear",
+        photo: cardPhotos.aggregates,
         summary: "Repair and overhaul of the systems that keep a commercial vehicle in service.",
         items: [
           "Brake systems",
@@ -137,6 +143,7 @@ export const consultingBlocks: {
         id: "fleet-support",
         title: "Fleet support",
         icon: "chart",
+        photo: cardPhotos.fleet,
         summary: "Planned upkeep that reduces unscheduled downtime across an operating fleet.",
         items: [
           "Preventive maintenance",
@@ -171,6 +178,7 @@ export const consultingBlocks: {
         id: "homologation-testing",
         title: "Homologation & testing",
         icon: "shieldCheck",
+        photo: cardPhotos.homologation,
         summary: "Coordination with authorised facilities and agencies, with documentation prepared alongside you.",
         items: [
           "Vehicle and component homologation support",
@@ -183,6 +191,7 @@ export const consultingBlocks: {
         id: "sourcing-engineering",
         title: "Sourcing & engineering support",
         icon: "wrench",
+        media: "automotiveParts",
         summary: "Technical support on the component and supplier side of a market-entry programme.",
         items: [
           "Component sourcing",
@@ -194,6 +203,7 @@ export const consultingBlocks: {
         id: "market-entry",
         title: "Market entry & go-to-market",
         icon: "target",
+        photo: cardPhotos.marketEntry,
         summary: "Commercial groundwork before and during launch in a new market.",
         items: [
           "Market assessment",

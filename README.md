@@ -747,6 +747,27 @@ these credits when moving a photo. To replace a photo with a GTS photograph, cha
 delete its credit. The photographs show each type in service and are captioned as
 illustrations, not as GTS shipments.
 
+### Photographs on the category cards
+
+Every `ProductCategoryCard` grid now leads with a photograph: Trade Categories, Vehicle Trade,
+the three consulting service pages, Manufacturing Scope and Route Survey (Automotive Parts
+already had them). A block takes either a `media` slot or a credited `photo`; when it has both,
+the card shows the `photo`.
+
+- **Cards that link to a page of their own reuse that page's slot** in media.ts, so the picture
+  carries through the click. Examples: Vehicle Import & Export → `vehicleTrade`, Trade Support →
+  `clearingForwarding`.
+- **The rest are 19 Wikimedia Commons photographs** in `public/images/cards/`, listed with their
+  credits in [card-photos.ts](src/data/card-photos.ts). The card prints the credit (photographer
+  and licence, both linked) over the corner of the photograph.
+- **The Vehicle Trade cards** each use one vehicle-type photograph from their segment page
+  (`cardType` in that page). They avoid the segment banners, which are already in the page's In
+  Depth grid. The cards in that grid are links, so the banners' credits are listed beneath it.
+
+`cc()` and the `Photo` / `PhotoCredit` types live in [photos.ts](src/data/photos.ts). `cc()`
+handles CC BY / BY-SA (including ported versions such as "CC BY-SA 2.0 de"), CC0 and public
+domain.
+
 ### The admin at /admin
 
 The vehicle model schedule is the one part of the site the client edits themselves, so it is
@@ -942,8 +963,9 @@ single edit, and nothing is invented in the meantime.
    available, starting with `contactCity` (currently a view of Chennai) — each slot's `brief`
    says what to shoot. Confirm the licence on the client-supplied ODC photographs too — five came
    from the RACE Innovations site. The vehicle-segment pages add 59 Wikimedia Commons
-   photographs. Most are CC BY or CC BY-SA and must keep their printed credit; see §6, *The
-   vehicle-segment pages*. Supply replacements as WebP/AVIF through `next/image`, and do
+   photographs and the category cards another 19. Most are CC BY or CC BY-SA and must keep
+   their printed credit; see §6, *The vehicle-segment pages* and *Photographs on the category
+   cards*. Supply replacements as WebP/AVIF through `next/image`, and do
    not substitute generic IT/cloud stock.
 5. **Model catalogue photographs.** The 96 vehicle shots came out of the client's catalogue,
    whose model pages are screenshots — so they are ~700×430 native at best, and nine are

@@ -1,5 +1,6 @@
 import type { IconName } from "@/components/Icon";
 import type { MediaKey } from "./media";
+import { cardPhotos } from "./card-photos";
 import type { CategoryBlock } from "./types";
 
 /**
@@ -197,6 +198,7 @@ export const surveyObstructions: CategoryBlock[] = [
     id: "structures",
     title: "Structures",
     icon: "bridge",
+    photo: cardPhotos.structures,
     summary: "Anything the consignment has to pass over, under or through.",
     items: [
       "Bridges",
@@ -211,6 +213,7 @@ export const surveyObstructions: CategoryBlock[] = [
     id: "geometry",
     title: "Road Geometry",
     icon: "route",
+    photo: cardPhotos.geometry,
     summary: "Where the road itself, rather than an object on it, is the constraint.",
     items: [
       "Narrow road sections",
@@ -225,6 +228,7 @@ export const surveyObstructions: CategoryBlock[] = [
     id: "overhead",
     title: "Overhead Obstructions",
     icon: "bolt",
+    photo: cardPhotos.overhead,
     summary:
       "The height-critical items, and the ones most likely to need a shutdown or a temporary removal.",
     items: [
@@ -240,6 +244,7 @@ export const surveyObstructions: CategoryBlock[] = [
     id: "roadside",
     title: "Roadside Objects",
     icon: "pin",
+    photo: cardPhotos.roadside,
     summary: "Fixed items at the road edge that reduce usable width at a specific chainage.",
     items: [
       "Camera poles",

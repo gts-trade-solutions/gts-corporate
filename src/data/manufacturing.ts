@@ -1,4 +1,5 @@
 import type { IconName } from "@/components/Icon";
+import { cardPhotos } from "./card-photos";
 import type { CategoryBlock } from "./types";
 
 /** Manufacturing page — required sections, per section 8 of the MVP brief. */
@@ -7,6 +8,7 @@ export const manufacturingSections: CategoryBlock[] = [
     id: "automotive-contract-manufacturing",
     title: "Automotive Contract Manufacturing",
     icon: "factory",
+    photo: cardPhotos.automotiveManufacturing,
     summary:
       "Build-to-print and build-to-specification manufacturing support for automotive structures, bodies and subassemblies.",
     items: [
@@ -23,6 +25,7 @@ export const manufacturingSections: CategoryBlock[] = [
     id: "industrial-fabrication",
     title: "Industrial Fabrication",
     icon: "wrench",
+    media: "slideManufacturing",
     summary:
       "Sheet-metal and structural fabrication coordinated through our partner network, from cutting through to finished assembly.",
     items: [
@@ -39,6 +42,7 @@ export const manufacturingSections: CategoryBlock[] = [
     id: "trailer-manufacturing",
     title: "Trailer Manufacturing Support",
     icon: "trailer",
+    media: "trailerDevelopment",
     summary:
       "Support across trailer types, from standard flatbeds to special-purpose configurations built for a defined duty cycle.",
     items: [
@@ -55,6 +59,7 @@ export const manufacturingSections: CategoryBlock[] = [
     id: "container-solutions",
     title: "Container Solutions",
     icon: "container",
+    photo: cardPhotos.containers,
     summary: "Manufacturing support and trade for standard and application-built containers.",
     items: [
       "Dry-freight containers",
@@ -69,6 +74,7 @@ export const manufacturingSections: CategoryBlock[] = [
     id: "reefer-solutions",
     title: "Reefer Solutions",
     icon: "snowflake",
+    photo: cardPhotos.reefer,
     summary:
       "Refrigerated body and container support for cold-chain operators, distributors and body builders.",
     items: [
@@ -84,6 +90,7 @@ export const manufacturingSections: CategoryBlock[] = [
     id: "prototype-to-production",
     title: "Prototype to Production",
     icon: "draft",
+    media: "manufacturingProcess",
     summary:
       "A staged route from drawing to repeat batches, so a first article is validated before volume is committed.",
     items: [
