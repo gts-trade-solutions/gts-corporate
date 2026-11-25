@@ -46,7 +46,8 @@ same values in your hosting provider's dashboard for production.
 | `ANTHROPIC_API_KEY` | No | Switches the site assistant to AI answers and adds the AI answer in search. Unset, the assistant still answers — from the site index, in offline mode — and search returns keyword results only. See §6b. |
 | `REMINDER_SECRET` | No | Shared token for the enquiry follow-up job at `/api/reminders`. Unset, the endpoint returns 404 and no reminder is ever sent. Needs the `MYSQL_*` variables too. See §6b. |
 | `NEXT_PUBLIC_GA_ID` | No | GA4 measurement ID. The analytics script only loads when set. |
-| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | No | Search Console HTML-tag token (the `content` value only). |
+| `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION` | No | Search Console HTML-tag token (the `content` value only). Not needed with DNS verification. |
+| `NEXT_PUBLIC_BING_SITE_VERIFICATION` | No | Bing Webmaster Tools `msvalidate.01` code. Not needed if the site is imported from Search Console. |
 | `MYSQL_HOST` / `MYSQL_PORT` / `MYSQL_USER` / `MYSQL_PASSWORD` / `MYSQL_DATABASE` | No | Database behind the `/admin` vehicle model editor. Unset, the site serves the static catalogue and the admin is read-only. Read at runtime, so no rebuild is needed. |
 | `ADMIN_EMAIL` / `ADMIN_PASSWORD` | No | The single sign-in for `/admin`. Unset in production, nobody can sign in. |
 | `ADMIN_USERS` | No | One password per person — `email:password,email:password`. The address is what the admin header shows and what a revocation removes. |
@@ -687,7 +688,7 @@ The same holds for the two data-driven sections added after the MVP:
   configured. Without one — and at build time before the first save — the schedule is the
   `vehicleModels` array in `src/data/vehicle-models.ts`, one object per model with its
   photograph at `public/images/vehicles/<slug>.webp`. Its page, its entry in the filters and
-  the OEM chips, its `Product` structured data, the coverage figures on the index and its
+  the OEM chips, its structured data, the coverage figures on the index and its
   sitemap entry all derive from the object. Slugs are stable, so a URL does not change because
   a model name was edited. `segment` and `parts` are transcribed from the client's model
   catalogue — the vehicle type and the "Priority Spare Parts / Components" line, split on its
@@ -1013,16 +1014,17 @@ single edit, and nothing is invented in the meantime.
   their real last-edited time from the database rather than the build date, so a crawler is
   not told that all 96 changed every deploy. `robots.txt` disallows `/api/` and `/admin`, but
   allows `/api/vehicle-photo/` — those are real image URLs, referenced by the model pages and
-  by their `Product` schema, and blocking them would keep admin-uploaded photographs out of
+  by their structured data, and blocking them would keep admin-uploaded photographs out of
   image search.
 - Open Graph and Twitter cards, backed by a generated 1200×630 branded image.
 - Structured data: `Organization` and `WebSite` site-wide; `Service` and `BreadcrumbList`
   per page; `FAQPage` on Import & Export, Automotive Parts, Manufacturing and Consulting
   (20 questions each), on the three ODC Logistics pages and on Vehicle Models; `ItemList` on
-  the Vehicle Models and Blog indexes; `Product` with an
-  `OfferCatalog` of parts on each model page, carrying the technical specification as
-  `additionalProperty` so engine, power, torque, transmission and GVW are machine-readable
-  rather than only prose; `Blog` plus `BlogPosting` on the blog.
+  the Vehicle Models and Blog indexes; `ItemPage` on each model page, about the vehicle and its
+  brand, with the parts as an `ItemList`; `Blog` plus `BlogPosting` on the blog.
+  The model pages deliberately do not use `Product`: Google requires a price, review or rating
+  on every Product node, the site publishes none, and Search Console would report every model
+  and every part as an error.
 - Internal linking: automotive parts → vehicle models → manufacturing → homologation → contact,
   with the blog linking into all of them.
 - Long-tail depth: 8 component category pages, 96 model pages (`<model> spare parts`) and 6
@@ -1075,6 +1077,21 @@ nginx site, the certificate and the database.
 3. Submit `https://your-domain/sitemap.xml` in Google Search Console.
 4. Verify the property using `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`, and add `NEXT_PUBLIC_GA_ID`.
 5. Test the OG card at `https://your-domain/opengraph-image`.
+
+**Getting indexed**
+
+- **Google:** verify the site in Search Console. A *Domain* property with a DNS TXT record
+  covers http/https and www in one, or use a URL-prefix property and
+  `NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION`. Then submit `sitemap.xml` and use *URL inspection →
+  Request indexing* on the main pages. Google retired sitemap pings in 2023; Search Console
+  is the route.
+- **Bing (and Yahoo, DuckDuckGo, which use Bing's index):** in Bing Webmaster Tools, *Import
+  from Google Search Console* is the quickest. Otherwise verify with
+  `NEXT_PUBLIC_BING_SITE_VERIFICATION` and submit the sitemap there.
+- **IndexNow** (Bing, Yandex, Naver, Seznam): `npm run indexnow` submits every sitemap URL;
+  `npm run indexnow -- /contact /blog/new-post` submits only those. The key file is
+  `public/a9283fe29111f5ead8f68d4b087fc55f.txt` and must stay deployed. Send the pages that
+  changed after a deploy, not the whole site every time.
 
 ---
 

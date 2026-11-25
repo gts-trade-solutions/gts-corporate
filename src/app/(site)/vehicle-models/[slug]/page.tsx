@@ -382,12 +382,12 @@ export default async function VehicleModelPage({ params }: Props) {
           breadcrumbSchema(trail),
           modelPartsSchema({
             name: `${name} spare parts`,
+            vehicle: name,
             description: descriptionFor(item),
             path: `/vehicle-models/${slug}`,
             brand: item.oem,
             parts: item.parts,
             image: vehicleImage(item),
-            specs: specSheet,
           }),
         ]}
       />

@@ -119,48 +119,56 @@ export function itemListSchema(input: {
 }
 
 /**
- * A vehicle model page. `Product` with the parts as an OfferCatalog is the
- * honest shape here: it says these components can be enquired about, without
- * asserting price, stock or an OEM authorisation we do not claim.
+ * A vehicle model page: an `ItemPage` about the vehicle, whose main entity is
+ * the list of parts that can be enquired about.
+ *
+ * Deliberately not `Product`. Google checks every Product node for product
+ * rich results, which need a price, a review or a rating. The site publishes
+ * none of those (no pricing, by the brief), so Product markup here could never
+ * earn a rich result and Search Console would report every model and every
+ * part as an error. This says the same things without the errors: what
+ * the page lists, for which vehicle and brand, with its photograph.
  */
 export function modelPartsSchema(input: {
+  /** Page name, e.g. "Tata Motors Super Ace spare parts". */
   name: string;
+  /** The vehicle, e.g. "Tata Motors Super Ace". */
+  vehicle: string;
   description: string;
   path: string;
   brand: string;
   parts: string[];
   /** Site-relative path to the model photograph. */
   image?: string;
-  /** The technical specification, already filtered to the confirmed fields. */
-  specs?: { label: string; value: string }[];
 }) {
+  const url = `${siteUrl}${input.path}`;
   return {
     "@context": "https://schema.org",
-    "@type": "Product",
+    "@type": "ItemPage",
+    "@id": url,
+    url,
     name: input.name,
     description: input.description,
-    url: `${siteUrl}${input.path}`,
-    category: "Vehicle spare parts",
-    brand: { "@type": "Brand", name: input.brand },
-    ...(input.image ? { image: `${siteUrl}${input.image}` } : {}),
-    ...(input.specs?.length
-      ? {
-          additionalProperty: input.specs.map((row) => ({
-            "@type": "PropertyValue",
-            name: row.label,
-            value: row.value,
-          })),
-        }
+    inLanguage: "en",
+    isPartOf: { "@id": `${siteUrl}/#website` },
+    publisher: { "@id": orgId },
+    about: [
+      { "@type": "Thing", name: input.vehicle },
+      { "@type": "Brand", name: input.brand },
+    ],
+    ...(input.image
+      ? { primaryImageOfPage: { "@type": "ImageObject", url: `${siteUrl}${input.image}` } }
       : {}),
     ...(input.parts.length
       ? {
-          hasOfferCatalog: {
-            "@type": "OfferCatalog",
-            name: `${input.name} — spare parts`,
-            itemListElement: input.parts.map((part) => ({
-              "@type": "Offer",
-              itemOffered: { "@type": "Product", name: `${input.name} ${part.toLowerCase()}` },
-              seller: { "@id": orgId },
+          mainEntity: {
+            "@type": "ItemList",
+            name: input.name,
+            numberOfItems: input.parts.length,
+            itemListElement: input.parts.map((part, index) => ({
+              "@type": "ListItem",
+              position: index + 1,
+              name: part,
             })),
           },
         }

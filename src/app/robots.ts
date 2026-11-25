@@ -36,7 +36,7 @@ export default function robots(): MetadataRoute.Robots {
       {
         userAgent: "*",
         // The photo route is a real image URL — it is referenced by the model
-        // pages and by their Product schema, so it has to stay crawlable even
+        // pages and by their structured data, so it has to stay crawlable even
         // though the rest of /api/ does not.
         allow: ["/", "/api/vehicle-photo/"],
         disallow: ["/api/", "/admin"],
