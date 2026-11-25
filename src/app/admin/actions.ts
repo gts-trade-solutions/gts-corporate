@@ -42,6 +42,7 @@ function revalidateSchedule() {
   revalidatePath("/automotive-parts");
   revalidatePath("/vehicle-models");
   revalidatePath("/vehicle-models/[slug]", "page");
+  revalidatePath("/import-export/vehicle-trade/[segment]", "page");
   revalidatePath("/sitemap.xml");
   revalidatePath("/admin");
 }

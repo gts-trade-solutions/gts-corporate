@@ -18,6 +18,7 @@ import { navDestinations } from "@/data/site";
 import { odcScope } from "@/data/logistics";
 import { tradeSections, vehicleCategories } from "@/data/trade";
 import { modelName, vehicleModels } from "@/data/vehicle-models";
+import { vehicleSegmentHref, vehicleSegments } from "@/data/vehicle-segments";
 import type { Faq } from "@/data/types";
 
 /**
@@ -181,6 +182,32 @@ function build(): SearchDoc[] {
 
   docs.push(...blockDocs(tradeSections, "/import-export", "Import & Export"));
   docs.push(...blockDocs(vehicleCategories, "/import-export/vehicle-trade", "Vehicle Trade"));
+
+  // The vehicle-segment pages, and every type on them as a deep link, so
+  // "tipper" or "school bus" lands on the section that explains it.
+  for (const segment of vehicleSegments) {
+    const href = vehicleSegmentHref(segment.id);
+    docs.push({
+      id: `segment:${segment.id}`,
+      title: segment.heroTitle,
+      href,
+      kind: "page",
+      section: "Vehicle Trade",
+      summary: segment.heroLead,
+      keywords: [...segment.keywords, ...segment.types.map((type) => type.title)],
+    });
+    for (const type of segment.types) {
+      docs.push({
+        id: `segment-type:${segment.id}:${type.id}`,
+        title: type.title,
+        href: `${href}#${type.id}`,
+        kind: "service",
+        section: segment.heroTitle,
+        summary: type.summary,
+        keywords: [...type.uses, ...type.facts.map((fact) => fact.value)],
+      });
+    }
+  }
   docs.push(...blockDocs(manufacturingSections, "/manufacturing/scope", "Manufacturing"));
   docs.push(...blockDocs(odcScope, "/odc-logistics", "ODC Logistics"));
 

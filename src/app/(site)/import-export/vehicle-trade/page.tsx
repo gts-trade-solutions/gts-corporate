@@ -3,13 +3,16 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CardCarousel } from "@/components/CardCarousel";
 import { CTASection } from "@/components/CTASection";
+import { Icon } from "@/components/Icon";
 import { JsonLd } from "@/components/JsonLd";
+import { Media } from "@/components/Media";
 import { ModuleNav } from "@/components/ModuleNav";
 import { PageHero } from "@/components/PageHero";
 import { ProductCategoryCard } from "@/components/ProductCategoryCard";
 import { Reveal } from "@/components/Reveal";
 import { Section, SectionHeading } from "@/components/Section";
 import { tradeNav, vehicleCategories } from "@/data/trade";
+import { findVehicleSegment, vehicleSegmentHref, vehicleSegments } from "@/data/vehicle-segments";
 import { buildMetadata, pageSeo } from "@/lib/seo";
 import { breadcrumbSchema, serviceSchema } from "@/lib/structured-data";
 
@@ -49,11 +52,19 @@ export default function VehicleTradePage() {
         </Reveal>
         <Reveal>
           <CardCarousel className="mt-12" label="Vehicle trade categories">
-            {vehicleCategories.map((category, index) => (
-              <div key={category.id} className="stagger-item h-full" style={stagger(index)}>
-                <ProductCategoryCard block={category} compact />
-              </div>
-            ))}
+            {vehicleCategories.map((category, index) => {
+              const segment = findVehicleSegment(category.id);
+              return (
+                <div key={category.id} className="stagger-item h-full" style={stagger(index)}>
+                  <ProductCategoryCard
+                    block={category}
+                    compact
+                    href={segment ? vehicleSegmentHref(segment.id) : undefined}
+                    linkLabel={segment ? `Explore ${segment.types.length} types in depth` : undefined}
+                  />
+                </div>
+              );
+            })}
           </CardCarousel>
         </Reveal>
 
@@ -78,6 +89,59 @@ export default function VehicleTradePage() {
             lists the components most often requested for each model we export — select what you
             need and it carries straight into an enquiry.
           </p>
+        </Reveal>
+      </Section>
+
+      {/* The categories with a page of their own, each explained type by type. */}
+      <Section tone="steel">
+        <Reveal>
+          <SectionHeading
+            eyebrow="In Depth"
+            index={2}
+            title="Commercial vehicles and buses, type by type"
+            lead="What each type is built for, the figures that matter when you specify one, photographs of each in service, and the models in our export schedule."
+          />
+        </Reveal>
+        <Reveal>
+          <ul className="mt-10 grid gap-5 lg:grid-cols-2">
+            {vehicleSegments.map((segment) => (
+              <li key={segment.id}>
+                <Link
+                  href={vehicleSegmentHref(segment.id)}
+                  className="keyline group flex h-full flex-col overflow-hidden rounded-sm border border-steel-200 bg-white transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-navy-200 hover:shadow-lift"
+                >
+                  <div className="relative aspect-[16/8] overflow-hidden bg-navy-900">
+                    <Media
+                      slot={segment.media}
+                      sizes="(min-width: 1024px) 50vw, 100vw"
+                      className="transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
+                    />
+                  </div>
+                  <div className="flex flex-1 flex-col p-5 sm:p-7">
+                    <div className="flex items-center gap-3">
+                      <Icon name={segment.icon} className="h-6 w-6 text-navy-700" />
+                      <h3 className="text-[20px] font-bold leading-snug text-ink group-hover:text-navy-800 sm:text-[22px]">
+                        {segment.heroTitle}
+                      </h3>
+                    </div>
+                    <ul className="mt-4 flex flex-wrap gap-2">
+                      {segment.types.map((type) => (
+                        <li
+                          key={type.id}
+                          className="rounded-sm border border-steel-200 bg-steel-50 px-2.5 py-1 text-[13px] font-medium text-ink-soft"
+                        >
+                          {type.title}
+                        </li>
+                      ))}
+                    </ul>
+                    <span className="mt-6 flex flex-1 items-end text-[14.5px] font-semibold text-navy-700 group-hover:text-accent-700">
+                      Explore {segment.types.length} types →
+                    </span>
+                  </div>
+                </Link>
+              </li>
+            ))}
+          </ul>
         </Reveal>
       </Section>
 

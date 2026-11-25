@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 import { blogPostsByDate } from "@/data/blog";
 import { partCategories } from "@/data/parts";
 import { siteUrl } from "@/data/site";
+import { vehicleSegmentHref, vehicleSegments } from "@/data/vehicle-segments";
 import { listVehicleModels } from "@/lib/vehicle-models-store";
 
 /**
@@ -27,6 +28,13 @@ const routes: Route[] = [
   { path: "/import-export", priority: 0.9, changeFrequency: "monthly" },
   { path: "/import-export/trade-categories", priority: 0.8, changeFrequency: "monthly" },
   { path: "/import-export/vehicle-trade", priority: 0.8, changeFrequency: "monthly" },
+  ...vehicleSegments.map(
+    (segment): Route => ({
+      path: vehicleSegmentHref(segment.id),
+      priority: 0.8,
+      changeFrequency: "monthly",
+    }),
+  ),
   { path: "/import-export/india-partner", priority: 0.8, changeFrequency: "monthly" },
   { path: "/automotive-parts", priority: 0.9, changeFrequency: "monthly" },
   { path: "/vehicle-models", priority: 0.9, changeFrequency: "monthly" },

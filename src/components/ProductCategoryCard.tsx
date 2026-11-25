@@ -14,12 +14,15 @@ export function ProductCategoryCard({
   headingLevel: Heading = "h3",
   compact = false,
   href,
+  linkLabel,
 }: {
   block: CategoryBlock;
   headingLevel?: "h2" | "h3" | "h4";
   compact?: boolean;
   /** When set, the card gets a link through to its detail page. */
   href?: string;
+  /** Text of that link. Defaults to "View <category> components". */
+  linkLabel?: string;
 }) {
   return (
     <article
@@ -67,7 +70,9 @@ export function ProductCategoryCard({
 
         {href ? (
           <span className="mt-6 flex flex-1 items-end">
-            <ArrowLink href={href}>View {componentsLabel(block.title).toLowerCase()}</ArrowLink>
+            <ArrowLink href={href}>
+              {linkLabel ?? `View ${componentsLabel(block.title).toLowerCase()}`}
+            </ArrowLink>
           </span>
         ) : null}
       </div>

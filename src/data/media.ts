@@ -12,7 +12,8 @@
  * Nothing else changes — `<Media>` switches to next/image automatically.
  * `brief` records what the photograph should show, for whoever replaces it.
  *
- * Two sources. The ODC Logistics photographs were supplied by the client. The
+ * Three sources. The ODC Logistics photographs were supplied by the client. The
+ * two vehicle-segment banners are CC0 photographs from Wikimedia Commons. The
  * rest are Unsplash photographs (free for commercial use under the Unsplash
  * License, no attribution required); `credit` records the photographer and the
  * source page so each one can be traced or swapped for a GTS photograph later.
@@ -42,6 +43,10 @@ type MediaBase = {
 };
 
 const unsplash = (name: string, id: string) => ({ name, url: `https://unsplash.com/photos/${id}` });
+const commons = (name: string, file: string) => ({
+  name,
+  url: `https://commons.wikimedia.org/wiki/File:${file}`,
+});
 
 /**
  * Either a still (or nothing yet, which renders the scene artwork), or a video
@@ -161,6 +166,25 @@ const slots = {
     brief:
       "Vehicles staged for export — a marshalling yard, RoRo berth or compound with rows of trucks or cars. Complete units, not parts.",
     credit: unsplash("Adem Percem", "27SvyguDTRo"),
+  },
+  /* Banners for the two vehicle-segment pages. Both are CC0 photographs from
+     Wikimedia Commons, so they need no visible credit; the photographs inside
+     those pages carry theirs (see src/data/vehicle-segments.ts). */
+  commercialVehiclesHero: {
+    src: "/images/vehicle-types/cv-hero.webp",
+    alt: "A row of new white Tata Prima tractor heads parked side by side in a yard.",
+    scene: "port",
+    brief: "Indian commercial vehicles — ideally a line of new trucks staged for delivery or export.",
+    credit: commons("Trucksindiawiki", "Tata_Prima_truck.jpg"),
+    position: "center 65%",
+  },
+  busesHero: {
+    src: "/images/vehicle-types/bus-hero.webp",
+    alt: "A line of green and white electric city buses parked in front of glass office towers in Hyderabad.",
+    scene: "port",
+    brief: "Buses in service or lined up at a depot — ideally a fleet, not a single vehicle.",
+    credit: commons("Kavali Chandrakanth KCK", "Electric_Buses_at_Amazon_Hyderabad_Telangana.jpg"),
+    position: "center 82%",
   },
   indiaPartner: {
     src: "/images/india-partner.webp",
