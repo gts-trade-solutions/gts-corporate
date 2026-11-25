@@ -141,7 +141,7 @@ function urgentLine() {
   const channels: string[] = [];
   const whatsapp = whatsappHref();
   if (whatsapp) channels.push(`WhatsApp: ${whatsapp}`);
-  if (contact.email) channels.push(`Email: ${contact.email}`);
+  if (contact.emails.length) channels.push(`Email: ${contact.emails.join(", ")}`);
   const teams = teamsHref();
   if (teams) channels.push(`Microsoft Teams: ${teams}`);
 

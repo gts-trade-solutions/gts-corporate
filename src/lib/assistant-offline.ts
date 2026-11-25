@@ -43,7 +43,7 @@ function contactDetails(): string {
     `Phone: ${contact.phones.join(", ")}.`,
     `Hours: ${contact.businessHours}.`,
   ];
-  if (contact.email) lines.push(`Email: ${contact.email}.`);
+  if (contact.emails.length) lines.push(`Email: ${contact.emails.join(", ")}.`);
   return `${lines.join(" ")}\n\nThe quickest route to the team is the [enquiry form](/contact) — it reaches the desk that quotes.`;
 }
 

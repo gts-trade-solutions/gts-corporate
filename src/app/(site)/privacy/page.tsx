@@ -90,7 +90,7 @@ export default function PrivacyPage() {
             </p>
             <p className="mt-2 text-[15.5px] leading-relaxed text-ink-soft">
               Phone: {contact.phones.join(" · ")}
-              {contact.email ? ` · Email: ${contact.email}` : ""}
+              {contact.emails.length ? ` · Email: ${contact.emails.join(" · ")}` : ""}
             </p>
             <p className="mt-4 text-[15.5px] text-ink-soft">
               Prefer to send a message?{" "}

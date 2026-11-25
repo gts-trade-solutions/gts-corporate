@@ -40,7 +40,7 @@ same values in your hosting provider's dashboard for production.
 | `SMTP_USER` / `SMTP_PASSWORD` | No | Omit only if your relay allows unauthenticated sending. |
 | `SMTP_SECURE` | No | Defaults to `true` on port 465, `false` otherwise. |
 | `RFQ_FROM_EMAIL` | No | From address. Defaults to `SMTP_USER`. Use a domain you control. |
-| `NEXT_PUBLIC_CONTACT_EMAIL` | No | Public enquiry address shown in header, footer and contact page. **Left blank by design** — see §7. |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | No | Overrides the published addresses (info@ and marketing@gtstradesolutions.com, set in [site.ts](src/data/site.ts)). Comma-separated; the first is the main one. Blank keeps the defaults. |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | No | Digits with country code, e.g. `919003031527`. WhatsApp is the site's primary conversational channel — every former Call action routes to it. Blank, those CTAs fall back to email, then the enquiry form. |
 | `NEXT_PUBLIC_TEAMS_ID` | No | Microsoft Teams: a full meeting/chat URL, or a bare Teams address, which is wrapped into a chat deep link. Blank hides every Teams surface. |
 | `ANTHROPIC_API_KEY` | No | Switches the site assistant to AI answers and adds the AI answer in search. Unset, the assistant still answers — from the site index, in offline mode — and search returns keyword results only. See §6b. |
@@ -812,7 +812,7 @@ floating rail:
 
 | Variable | Channel |
 | --- | --- |
-| `NEXT_PUBLIC_CONTACT_EMAIL` | The published email address |
+| `NEXT_PUBLIC_CONTACT_EMAIL` | Overrides the published email addresses (defaults in `site.ts`) |
 | `NEXT_PUBLIC_WHATSAPP_NUMBER` | WhatsApp (digits with country code) |
 | `NEXT_PUBLIC_TEAMS_ID` | Microsoft Teams (a full URL, or a bare address) |
 
@@ -920,9 +920,10 @@ single edit, and nothing is invented in the meantime.
 1. **Logo.** [src/components/Logo.tsx](src/components/Logo.tsx) renders a typographic
    wordmark as a placeholder. Drop the official file into `public/` and swap the mark for
    `next/image` (the header allows 40px height).
-2. **Public email address.** Deliberately blank. Set `NEXT_PUBLIC_CONTACT_EMAIL` and it
-   appears in the header utility row, footer, mobile drawer, contact page, the "Talk to an
-   expert" band and the Organization JSON-LD.
+2. **Public email addresses.** Done: info@gtstradesolutions.com (the main one) and
+   marketing@gtstradesolutions.com, in `contact.emails` in [site.ts](src/data/site.ts). The
+   footer, contact page, mobile drawer and privacy notice list both; the header utility row,
+   the "Talk to an expert" band and the Organization JSON-LD use the main one.
 3. **WhatsApp number.** WhatsApp is the site's primary conversational channel and every former
    Call button now routes to it — but the whole thing is off until
    `NEXT_PUBLIC_WHATSAPP_NUMBER` is set, and those CTAs fall back to the enquiry form until
@@ -951,9 +952,10 @@ single edit, and nothing is invented in the meantime.
    publish them** before launch, and replace the nine small ones from OEM or authorised
    distributor material. The component photographs are stock-style part shots from the same
    document and want the same check.
-6. **Contact details.** Address and phone numbers are the ones published on the existing
-   GTS reference page. Confirm or replace them in `src/data/site.ts`. Note the numbers are
-   printed but never dialled — see §6b.
+6. **Contact details.** The phone numbers (+91 93848 57579, +91 93848 58578) are the ones GTS
+   supplied. The office address is still the one from the existing GTS reference page; confirm
+   it in `src/data/site.ts`. The WhatsApp line (`919003031527`) is unchanged; confirm it too.
+   Note the numbers are printed but never dialled — see §6b.
 6b. **Banner photography.** The home banner's four slides (`slideTrade`, `slideComponents`,
    `slideManufacturing`, `slideConsulting`) carry Unsplash photographs, deliberately different
    from the home page's service cards so nothing repeats on the page. If they are replaced, the

@@ -688,17 +688,17 @@ export function Header() {
                 Talk to us
               </h2>
               <ul className="mt-3 space-y-2.5 text-[14px]">
-                {email ? (
-                  <li>
+                {contact.emails.map((address) => (
+                  <li key={address}>
                     <a
-                      href={email}
+                      href={mailtoHref(undefined, address)}
                       tabIndex={open ? 0 : -1}
-                      className="font-semibold text-navy-800 underline underline-offset-2"
+                      className="break-all font-semibold text-navy-800 underline underline-offset-2"
                     >
-                      {contact.email}
+                      {address}
                     </a>
                   </li>
-                ) : null}
+                ))}
                 {whatsapp ? (
                   <li>
                     <a

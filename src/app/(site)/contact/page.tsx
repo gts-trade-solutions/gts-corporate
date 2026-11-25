@@ -95,17 +95,17 @@ export default function ContactPage() {
                     </a>
                   </li>
                 ) : null}
-                {contact.email ? (
-                  <li className="group/copy flex items-center gap-1">
+                {contact.emails.map((address) => (
+                  <li key={address} className="group/copy flex items-center gap-1">
                     <a
-                      href={mailtoHref("Enquiry from the GTS website")}
+                      href={mailtoHref("Enquiry from the GTS website", address)}
                       className="break-all text-[15.5px] font-semibold text-navy-700 transition-colors duration-200 hover:text-accent-700"
                     >
-                      {contact.email}
+                      {address}
                     </a>
-                    <CopyButton value={contact.email} label="email address" />
+                    <CopyButton value={address} label={`email address ${address}`} />
                   </li>
-                ) : null}
+                ))}
                 {!whatsapp && !teams && !contact.email ? (
                   <li className="text-[15px] text-ink-soft">
                     Use the enquiry form — it reaches the desk that quotes it.

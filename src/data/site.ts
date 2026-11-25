@@ -1,9 +1,9 @@
 /**
  * Single place to edit brand, contact and navigation details.
  *
- * Contact details below are the ones published on the existing GTS reference
- * page (globalgtstech.com/business-automotive). Replace them once the final
- * contact information for this site is approved.
+ * The office address is the one published on the existing GTS reference page
+ * (globalgtstech.com/business-automotive). The phone numbers and email
+ * addresses are the ones GTS supplied for this site.
  */
 
 /**
@@ -57,6 +57,13 @@ export const site = {
   url: siteUrl,
 } as const;
 
+const contactEmails: readonly string[] = (
+  process.env.NEXT_PUBLIC_CONTACT_EMAIL || "info@gtstradesolutions.com, marketing@gtstradesolutions.com"
+)
+  .split(",")
+  .map((address) => address.trim())
+  .filter(Boolean);
+
 export const contact = {
   /** Marketing office as published on the existing GTS reference page. */
   office: {
@@ -68,21 +75,23 @@ export const contact = {
     country: "IN",
   },
   /**
-   * Phone numbers as published on the existing GTS reference page.
+   * Office phone numbers.
    *
    * Listed as text only. There is deliberately no tel: link anywhere on the
    * site — the agreed contact routes are WhatsApp, email and the enquiry form,
    * so a "Call" action would send people down a channel nobody is staffing.
    * `whatsappHref` below is what every former call button now points at.
    */
-  phones: ["+91 44 6610 8114", "+91 80720 98352"],
+  phones: ["+91 93848 57579", "+91 93848 58578"],
   /**
-   * Public enquiry address, shown in the header utility row, the footer, the
-   * contact page and the mobile menu. Set NEXT_PUBLIC_CONTACT_EMAIL and it
-   * appears everywhere at once; left empty, every mailto surface is skipped
-   * rather than rendering a broken link. Nothing is invented.
+   * Published email addresses. The first is the main one: every single
+   * "Email us" action, the header utility row and the Organization JSON-LD
+   * use it. The footer, contact page, mobile menu and privacy notice list them
+   * all. NEXT_PUBLIC_CONTACT_EMAIL overrides the list (comma-separated).
    */
-  email: process.env.NEXT_PUBLIC_CONTACT_EMAIL ?? "",
+  emails: contactEmails,
+  /** The main address — the first of `emails`. */
+  email: contactEmails[0] ?? "",
   /**
    * WhatsApp is the primary conversational channel — the floating button, the
    * header action, the mobile menu and every CTA band route to it. Digits with
@@ -130,10 +139,13 @@ export const teamsHref = () => {
   return `https://teams.microsoft.com/l/chat/0/0?users=${encodeURIComponent(id)}`;
 };
 
-/** mailto: link with an optional subject, or "" when no address is set. */
-export const mailtoHref = (subject?: string) =>
-  contact.email
-    ? `mailto:${contact.email}${subject ? `?subject=${encodeURIComponent(subject)}` : ""}`
+/**
+ * mailto: link with an optional subject, or "" when no address is set.
+ * Defaults to the main address; pass another of `contact.emails` to link it.
+ */
+export const mailtoHref = (subject?: string, address: string = contact.email) =>
+  address
+    ? `mailto:${address}${subject ? `?subject=${encodeURIComponent(subject)}` : ""}`
     : "";
 
 /**

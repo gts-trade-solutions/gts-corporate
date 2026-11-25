@@ -108,7 +108,7 @@ ${sections.map(([section, entries]) => `## ${section}\n\n${entries.join("\n")}`)
 ## Contact
 
 The enquiry form at ${siteUrl}/contact is the route to a quotation — it takes the product, quantity, destination market and any drawing or specification.
-${contact.email ? `Email: ${contact.email}\n` : ""}Office numbers (listed for reference; enquiries are handled by form, WhatsApp and email): ${contact.phones.join(", ")}.
+${contact.emails.length ? `Email: ${contact.emails.join(", ")}\n` : ""}Office numbers (listed for reference; enquiries are handled by form, WhatsApp and email): ${contact.phones.join(", ")}.
 `;
 
   return new Response(body, {
