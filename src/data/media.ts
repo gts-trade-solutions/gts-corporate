@@ -13,7 +13,8 @@
  * `brief` records what the photograph should show, for whoever replaces it.
  *
  * Three sources. The ODC Logistics photographs were supplied by the client. The
- * two vehicle-segment banners are CC0 photographs from Wikimedia Commons. The
+ * vehicle-segment banners are photographs from Wikimedia Commons; the CC BY /
+ * BY-SA ones are credited on their page (`heroCredit`). The
  * rest are Unsplash photographs (free for commercial use under the Unsplash
  * License, no attribution required); `credit` records the photographer and the
  * source page so each one can be traced or swapped for a GTS photograph later.
@@ -185,6 +186,67 @@ const slots = {
     brief: "Buses in service or lined up at a depot — ideally a fleet, not a single vehicle.",
     credit: commons("Kavali Chandrakanth KCK", "Electric_Buses_at_Amazon_Hyderabad_Telangana.jpg"),
     position: "center 82%",
+  },
+  /* The other segment banners are CC BY / BY-SA, so each segment page also
+     prints the banner's credit (`heroCredit` in src/data/vehicle-segments). */
+  passengerVehiclesHero: {
+    src: "/images/vehicle-types/pv-hero.webp",
+    alt: "A bronze 2024 Mahindra Scorpio SUV parked on a street in Western Australia.",
+    scene: "port",
+    brief: "Indian-built passenger vehicles, ideally new cars lined up for export.",
+    credit: commons("LuvsMG481", "2024_Mahindra_Scorpio_Z8L_front.jpg"),
+    position: "center 60%",
+  },
+  twoWheelersHero: {
+    src: "/images/vehicle-types/tw-hero.webp",
+    alt: "A green Bajaj Dominar 400 motorcycle parked in front of shuttered garages.",
+    scene: "port",
+    brief: "Indian motorcycles in use, ideally a row of commuter bikes or a taxi rank.",
+    credit: commons("Cppfront", "DOMINAR_400_naked_cruiser_img2.jpg"),
+    position: "center 74%",
+  },
+  threeWheelersHero: {
+    src: "/images/vehicle-types/thw-hero.webp",
+    alt: "A row of green and yellow auto-rickshaws parked outside Purana Qila in Delhi.",
+    scene: "port",
+    brief: "Three-wheelers in service, ideally a rank of auto-rickshaws.",
+    credit: commons("Slyronit", "Auto_Rickshaws_outside_Purana_Qila,_Delhi.jpg"),
+    position: "center 60%",
+  },
+  electricVehiclesHero: {
+    src: "/images/vehicle-types/ev-hero.webp",
+    alt: "An EV super-charging station forecourt beside a road in Kollam, Kerala.",
+    scene: "port",
+    brief: "Electric vehicles charging, ideally a fleet at a depot.",
+    credit: commons("Manukrishnan80", "EV_charging_station_,kollam.jpg"),
+    position: "center 55%",
+  },
+  specialPurposeHero: {
+    src: "/images/vehicle-types/sp-hero.webp",
+    alt: "A red Mumbai Fire Brigade mini fire tender parked on a city street.",
+    scene: "port",
+    brief: "An application-built vehicle at work: fire tender, tanker or reefer.",
+    credit: commons("AvaneeshKulkarni04", "Mini_fire_tender_if_Mumbai_Fire_Brigade.jpg"),
+    position: "center 60%",
+  },
+  agriculturalHero: {
+    src: "/images/vehicle-types/ag-hero.webp",
+    alt: "A red Mahindra tractor carrying three farmers along a country road near Pali, India.",
+    scene: "fabrication",
+    brief: "Indian tractors and machinery working in the field.",
+    credit: commons("Clément Bardot", "Mahindra_Tractor,_India.jpg"),
+    position: "center 45%",
+  },
+  constructionHero: {
+    src: "/images/vehicle-types/ce-hero.webp",
+    alt: "A yellow JCB excavator cutting a road into a rocky mountainside in Ladakh.",
+    scene: "fabrication",
+    brief: "Construction machines on an Indian road or infrastructure project.",
+    credit: commons(
+      "Timothy A. Gonsalves",
+      "JCB_Excavator_Padum_Purney_Road_Tsarap_Oct22_A7C_04402.jpg",
+    ),
+    position: "center 55%",
   },
   indiaPartner: {
     src: "/images/india-partner.webp",

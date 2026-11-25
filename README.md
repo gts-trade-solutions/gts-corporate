@@ -714,32 +714,38 @@ path there and reference it by name.
 
 ### The vehicle-segment pages
 
-`/import-export/vehicle-trade/commercial-vehicles` and `/import-export/vehicle-trade/buses`
-explain each category type by type. Commercial vehicles has seven types, from mini trucks to
-tractor heads; buses has six, from minibuses to bus chassis. Each type has:
+Every category on the Vehicle Trade page has its own page at
+`/import-export/vehicle-trade/<category>`, nine in all. Each page explains its category type
+by type, from passenger cars and motorcycles to tractors and excavators. Each type has:
 
 - a photograph;
 - what the type is and how it is built;
 - the key figures for the class and its typical uses;
-- the models from the schedule that belong to it.
+- the models from the schedule that belong to it, where the schedule covers the category.
 
-The Vehicle Trade page links to both pages.
+Each page also has a classification box, the questions that decide whether a vehicle can be
+exported, and an enquiry checklist. Some pages add an explainer, such as how Indian truck
+model numbers work or why many Indian cars are just under four metres long.
 
-All the copy is in [vehicle-segments.ts](src/data/vehicle-segments.ts). The figures are hedged
-ranges for the class. The only exact figures are the specs the client recorded for a named
-model, and those are labelled "From our schedule".
+The copy is in [src/data/vehicle-segments/](src/data/vehicle-segments/), one file per
+category; [index.ts](src/data/vehicle-segments/index.ts) sets their order. The figures are
+hedged ranges for the class. The only exact figures are the specs the client recorded for a
+named model, and those are labelled "From our schedule".
 
-Models are placed under a type by matching their `segment` text, so a model added in `/admin`
-appears under the right type without a code change. A model whose segment matches no type
-still appears in `/vehicle-models`; it is just not listed on these pages. Saving a model in
-`/admin` revalidates both pages.
+Models are placed under a type by matching their `segment` text, or their maker and model
+name where the segment alone is not enough (most motorcycles are simply "Motorcycle"). A model
+added in `/admin` therefore appears under the right type without a code change, as long as it
+is described like the catalogue's models. A model that matches no type still appears in
+`/vehicle-models`; it is just not listed on these pages. Saving a model in `/admin`
+revalidates every segment page.
 
-**The type photographs are Wikimedia Commons images, and most require a visible credit.**
-They are CC BY or CC BY-SA licensed, which requires the photographer and the licence to be
-shown with the picture. Each photo carries a `credit` that the page prints beneath it, so
-keep the credit when moving a photo. To replace one with a GTS photograph, change `src` and
-delete its `credit`. The two page banners are CC0 and need no credit. The photographs show
-each type in service and are captioned as illustrations, not as GTS shipments.
+**The photographs are Wikimedia Commons images, and most require a visible credit.** Most are
+CC BY or CC BY-SA licensed, which requires the photographer and the licence to be shown with
+the picture. Each type photo carries a `credit` that the page prints beneath it, and a banner
+with such a licence carries a `heroCredit` that the page prints under the types index. Keep
+these credits when moving a photo. To replace a photo with a GTS photograph, change `src` and
+delete its credit. The photographs show each type in service and are captioned as
+illustrations, not as GTS shipments.
 
 ### The admin at /admin
 
@@ -934,9 +940,9 @@ single edit, and nothing is invented in the meantime.
    GTS's own premises, vehicles or people. Replace them with GTS photographs as those become
    available, starting with `contactCity` (currently a view of Chennai) — each slot's `brief`
    says what to shoot. Confirm the licence on the client-supplied ODC photographs too — five came
-   from the RACE Innovations site. The vehicle-segment pages add 14 Wikimedia Commons
-   photographs. Twelve of them are CC BY or CC BY-SA and must keep their printed credit; see
-   §6, *The vehicle-segment pages*. Supply replacements as WebP/AVIF through `next/image`, and do
+   from the RACE Innovations site. The vehicle-segment pages add 59 Wikimedia Commons
+   photographs. Most are CC BY or CC BY-SA and must keep their printed credit; see §6, *The
+   vehicle-segment pages*. Supply replacements as WebP/AVIF through `next/image`, and do
    not substitute generic IT/cloud stock.
 5. **Model catalogue photographs.** The 96 vehicle shots came out of the client's catalogue,
    whose model pages are screenshots — so they are ~700×430 native at best, and nine are

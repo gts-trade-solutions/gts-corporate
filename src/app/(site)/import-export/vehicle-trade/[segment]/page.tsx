@@ -7,7 +7,6 @@ import { CreditedPhoto } from "@/components/CreditedPhoto";
 import { CTASection } from "@/components/CTASection";
 import { Icon } from "@/components/Icon";
 import { JsonLd } from "@/components/JsonLd";
-import { Media } from "@/components/Media";
 import { ModuleNav } from "@/components/ModuleNav";
 import { PageHero } from "@/components/PageHero";
 import { Reveal } from "@/components/Reveal";
@@ -196,6 +195,30 @@ export default async function VehicleSegmentPage({ params }: Props) {
         <p className="mt-6 max-w-4xl text-[13px] leading-relaxed text-ink-muted">
           The photographs show each type in service in India and in export markets. They illustrate
           the class; they are not GTS shipments. Each carries its photographer&apos;s credit.
+          {segment.heroCredit ? (
+            <>
+              {" "}
+              Banner photograph:{" "}
+              <a
+                href={segment.heroCredit.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="underline decoration-steel-300 underline-offset-2 hover:text-ink"
+              >
+                {segment.heroCredit.name}
+              </a>
+              ,{" "}
+              <a
+                href={segment.heroCredit.licenceUrl}
+                target="_blank"
+                rel="noopener noreferrer license"
+                className="underline decoration-steel-300 underline-offset-2 hover:text-ink"
+              >
+                {segment.heroCredit.licence}
+              </a>
+              , via Wikimedia Commons.
+            </>
+          ) : null}
         </p>
       </Section>
 
@@ -312,7 +335,7 @@ export default async function VehicleSegmentPage({ params }: Props) {
           <div className="grid gap-8 lg:grid-cols-12 lg:gap-14">
             <div className="lg:col-span-5">
               <Reveal>
-                <SectionHeading eyebrow="Model numbers" title={segment.explainer.title} inverted />
+                <SectionHeading eyebrow={segment.explainer.eyebrow} title={segment.explainer.title} inverted />
               </Reveal>
             </div>
             <div className="lg:col-span-7">
@@ -395,35 +418,30 @@ export default async function VehicleSegmentPage({ params }: Props) {
 
           <div className="lg:col-span-5">
             <Reveal>
-              <h2 className={subheading}>Related</h2>
-              <ul className="mt-4 grid gap-4">
+              <h2 className={subheading}>Other vehicle categories</h2>
+              <ul className="mt-4 grid gap-2 sm:grid-cols-2 lg:grid-cols-1">
                 {others.map((other) => (
                   <li key={other.id}>
                     <Link
                       href={vehicleSegmentHref(other.id)}
-                      className="keyline group block overflow-hidden rounded-sm border border-steel-200 bg-white transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:-translate-y-1 hover:border-navy-200 hover:shadow-lift"
+                      className="group flex items-center gap-3.5 rounded-sm border border-steel-200 bg-white px-4 py-3 transition-all duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] hover:border-navy-200 hover:shadow-card"
                     >
-                      <div className="relative aspect-[16/7] overflow-hidden bg-navy-900">
-                        <Media
-                          slot={other.media}
-                          sizes="(min-width: 1024px) 33vw, 100vw"
-                          className="transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.04]"
-                        />
-                      </div>
-                      <div className="flex items-center justify-between gap-4 p-5">
-                        <span>
-                          <span className="block text-[16px] font-bold text-ink group-hover:text-navy-800">
-                            {other.shortTitle}
-                          </span>
-                          <span className="mt-1 block text-[13.5px] text-ink-soft">
-                            {other.types.length} types explained
-                          </span>
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-sm bg-navy-50 text-navy-700 transition-colors duration-300 group-hover:bg-navy-800 group-hover:text-white">
+                        <Icon name={other.icon} className="h-[18px] w-[18px]" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span className="block text-[14.5px] font-bold text-ink group-hover:text-navy-800">
+                          {other.shortTitle}
                         </span>
-                        <Icon name={other.icon} className="h-6 w-6 shrink-0 text-navy-700" />
-                      </div>
+                        <span className="block text-[12.5px] text-ink-muted">
+                          {other.types.length} types explained
+                        </span>
+                      </span>
                     </Link>
                   </li>
                 ))}
+              </ul>
+              <ul className="mt-4 grid gap-4">
                 <li className="grid gap-3 rounded-sm border border-steel-200 bg-white p-5">
                   <ArrowLink href="/vehicle-models">Vehicle model schedule and spare parts</ArrowLink>
                   <ArrowLink href="/import-export/vehicle-trade">All vehicle and equipment categories</ArrowLink>
