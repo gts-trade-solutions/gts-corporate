@@ -46,7 +46,7 @@ type Props = { params: Promise<{ slug: string }> };
 */
 const DESCRIPTION_MAX = 158;
 
-const seoTitleFor = (name: string) => `${name} Spare Parts | GTS Trade Solutions`;
+const seoTitleFor = (name: string) => `${name} Spare Parts Exporter | GTS`;
 
 const descriptionFor = (item: VehicleModel) => {
   const tail = " Tick the parts you need and enquire in one step.";

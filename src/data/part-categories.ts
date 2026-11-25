@@ -22,9 +22,9 @@ export type PartCategoryDetail = {
 
 export const partCategoryDetails: Record<string, PartCategoryDetail> = {
   "two-wheelers": {
-    seoTitle: "Two Wheeler Spare Parts Supplier & Exporter | GTS Trade Solutions",
+    seoTitle: "Two Wheeler Spare Parts Exporter India | GTS",
     metaDescription:
-      "Source two-wheeler components — motors, controllers, battery packs, BMS, chargers, wheels, tyres, brakes, suspension and body parts — for petrol and electric platforms.",
+      "Two-wheeler spare parts from India for petrol and electric platforms: motors, controllers, batteries, BMS, chargers, wheels, tyres, brakes and suspension.",
     keywords: [
       "two wheeler spare parts",
       "motorcycle spare parts exporter",
@@ -49,9 +49,9 @@ export const partCategoryDetails: Record<string, PartCategoryDetail> = {
     ],
   },
   "three-wheelers": {
-    seoTitle: "Three Wheeler Parts Supplier — Axles, EV Axles & Drivetrain | GTS",
+    seoTitle: "Three Wheeler Spare Parts Exporter India | GTS",
     metaDescription:
-      "Three-wheeler components for passenger, cargo and electric platforms: rear axles, differentials, EV axles, motors, controllers, batteries, brakes, suspension, tyres and rims.",
+      "Three-wheeler spare parts for passenger, cargo and electric autos: rear axles, differentials, EV axles, motors, controllers, batteries, brakes and tyres.",
     keywords: [
       "three wheeler parts",
       "auto rickshaw spare parts",
@@ -76,9 +76,9 @@ export const partCategoryDetails: Record<string, PartCategoryDetail> = {
     ],
   },
   "cars-lcvs": {
-    seoTitle: "Car & LCV Spare Parts Supplier and Exporter | GTS Trade Solutions",
+    seoTitle: "Car & LCV Spare Parts Exporter India | GTS",
     metaDescription:
-      "Passenger car and light commercial vehicle components: suspension, steering, braking, drivetrain, wheels, tyres, electrical, thermal and chassis parts for OEM and aftermarket buyers.",
+      "Car and LCV spare parts from India: suspension, steering, brakes, drivetrain, wheels, tyres, electrical and chassis parts for OEM and aftermarket buyers.",
     keywords: [
       "car spare parts exporter",
       "LCV spare parts",
@@ -98,9 +98,9 @@ export const partCategoryDetails: Record<string, PartCategoryDetail> = {
     applications: ["Passenger cars", "SUVs and MPVs", "Pick-ups", "Light commercial vehicles"],
   },
   trucks: {
-    seoTitle: "Truck Spare Parts Supplier & Exporter — Axles, Brakes, Tyres | GTS",
+    seoTitle: "Truck Spare Parts Exporter India | Axles & Brakes | GTS",
     metaDescription:
-      "Medium and heavy truck components: front and rear axles, mechanical and air suspension, brakes, ABS and EBS, tyres, wheel rims, differentials, propeller shafts, PTOs, hydraulics and cabin parts.",
+      "Truck spare parts from India: axles, mechanical and air suspension, brakes, ABS and EBS, tyres, rims, differentials, propeller shafts, PTOs and cabin parts.",
     keywords: [
       "truck spare parts",
       "truck axle supplier",
@@ -127,9 +127,9 @@ export const partCategoryDetails: Record<string, PartCategoryDetail> = {
     ],
   },
   buses: {
-    seoTitle: "Bus Spare Parts Supplier — Axles, Air Suspension, HVAC, Seats | GTS",
+    seoTitle: "Bus Spare Parts Supplier India | Axles, Suspension | GTS",
     metaDescription:
-      "Bus and coach components: axles, air suspension, steering, brakes, tyres, rims, doors, seats, HVAC, lighting, electrical, safety and interior parts for city, intercity and electric buses.",
+      "Bus and coach spare parts: axles, air suspension, steering, brakes, tyres, doors, seats, HVAC, lighting and electrical parts for city, intercity and e-buses.",
     keywords: [
       "bus spare parts",
       "bus axle supplier",
@@ -151,9 +151,9 @@ export const partCategoryDetails: Record<string, PartCategoryDetail> = {
     applications: ["City buses", "Intercity coaches", "School and staff buses", "Electric buses"],
   },
   "ev-components": {
-    seoTitle: "EV Components Supplier — E-Axles, Traction Motors, BMS, Chargers | GTS",
+    seoTitle: "EV Components Supplier India | E-Axles, Motors, BMS | GTS",
     metaDescription:
-      "Electric vehicle components: e-axles, traction motors, controllers, inverters, battery systems and BMS, chargers, DC-DC converters, high-voltage harnesses and thermal management.",
+      "EV components from India: e-axles, traction motors, controllers, inverters, battery systems and BMS, chargers, DC-DC converters and HV harnesses.",
     keywords: [
       "EV components supplier",
       "e axle supplier",
@@ -180,9 +180,9 @@ export const partCategoryDetails: Record<string, PartCategoryDetail> = {
     ],
   },
   "trailer-components": {
-    seoTitle: "Trailer Parts Supplier — Axles, Landing Legs, Kingpins, Fifth Wheels | GTS",
+    seoTitle: "Trailer Parts Supplier India | Axles, Kingpins | GTS",
     metaDescription:
-      "Trailer running gear and coupling components: trailer axles, mechanical and air suspension, landing legs, kingpins, fifth wheels, brakes, ABS and EBS, tyres, rims, lighting and mudguards.",
+      "Trailer parts from India: axles, mechanical and air suspension, landing legs, kingpins, fifth wheels, brakes, ABS and EBS, tyres, rims and lighting.",
     keywords: [
       "trailer axle supplier",
       "trailer parts exporter",
@@ -209,9 +209,9 @@ export const partCategoryDetails: Record<string, PartCategoryDetail> = {
     ],
   },
   "agriculture-off-highway": {
-    seoTitle: "Tractor & Agricultural Machinery Parts Supplier | GTS Trade Solutions",
+    seoTitle: "Tractor Spare Parts Exporter India | Farm Machinery | GTS",
     metaDescription:
-      "Tractor and off-highway components: axles, transmission parts, PTOs, hydraulic pumps and cylinders, linkages, tyres and rims, disc blades, rotavator and harvester parts, bearings and filters.",
+      "Tractor and farm machinery spare parts: axles, transmission parts, PTOs, hydraulic pumps and cylinders, linkages, tyres, disc blades and rotavator parts.",
     keywords: [
       "tractor parts supplier",
       "agricultural machinery parts",

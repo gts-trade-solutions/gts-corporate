@@ -18,6 +18,19 @@ export function organizationSchema() {
     // Use the full supplied identity for search and knowledge panels.
     logo: `${siteUrl}/images/gts-logo.png`,
     description: site.supportingLine,
+    // What the business does, main lines first, so search engines can tell
+    // which searches it is relevant to.
+    knowsAbout: [
+      "Import and export",
+      "General trade",
+      "Automotive spare parts trade",
+      "Contract manufacturing",
+      "Vehicle export",
+      "Metal fabrication",
+      "Product sourcing from India",
+      "ODC logistics",
+    ],
+    areaServed: { "@type": "Place", name: "Worldwide" },
     address: {
       "@type": "PostalAddress",
       streetAddress: `${contact.office.lines[0]}, ${contact.office.lines[1]}`,
