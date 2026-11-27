@@ -216,6 +216,45 @@ export function articleSchema(input: {
   };
 }
 
+/**
+ * A self-hosted film. `seconds` becomes the ISO-8601 duration Google expects,
+ * and `path` is the page section the player sits in, so a video result links to
+ * the film in context rather than to the bare MP4.
+ *
+ * There is deliberately no `embedUrl`: that field means a URL that loads a
+ * player on its own — an iframe src — and a page anchor is not one. Google
+ * asks for `contentUrl` or `embedUrl`, and for a self-hosted MP4 the file
+ * itself is the right answer.
+ */
+export function videoSchema(input: {
+  name: string;
+  description: string;
+  /** Page (and hash) the player sits on, e.g. "/#film". */
+  path: string;
+  /** Public path of the MP4. */
+  contentPath: string;
+  /** Public path of the poster frame. */
+  thumbnailPath: string;
+  seconds: number;
+  /** ISO date the film was supplied. */
+  uploadDate: string;
+}) {
+  const minutes = Math.floor(input.seconds / 60);
+  return {
+    "@context": "https://schema.org",
+    "@type": "VideoObject",
+    name: input.name,
+    description: input.description,
+    thumbnailUrl: `${siteUrl}${input.thumbnailPath}`,
+    contentUrl: `${siteUrl}${input.contentPath}`,
+    url: `${siteUrl}${input.path}`,
+    duration: `PT${minutes}M${input.seconds - minutes * 60}S`,
+    uploadDate: input.uploadDate,
+    publisher: { "@id": orgId },
+    inLanguage: "en",
+  };
+}
+
 export function faqSchema(faqs: Faq[]) {
   return {
     "@context": "https://schema.org",

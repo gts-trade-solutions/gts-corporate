@@ -76,6 +76,28 @@ export const indiaPartner = {
 };
 
 /**
+ * The corporate film. The file and its poster both live in `public/`, and the
+ * poster is a frame from the film itself — so the picture a crawler indexes,
+ * the one a reduced-motion viewer keeps and the one sitting under the play
+ * button are all the same frame.
+ *
+ * `seconds` and `uploaded` only feed the VideoObject schema. Keep `seconds` in
+ * step with the file if the film is ever recut.
+ */
+export const corporateFilm = {
+  src: "/videos/gts-corporate-film.mp4",
+  poster: "/images/gts-corporate-film-poster.webp",
+  seconds: 86,
+  uploaded: "2026-11-26",
+  title: "See how the four lines work together",
+  lead: "A minute and a half on how sourcing, components, manufacturing and heavy-lift logistics run through one team — and what that means for a requirement moving from drawing to destination market.",
+  label:
+    "GTS Trade Solutions corporate film — sourcing, automotive components, contract manufacturing and ODC logistics.",
+  description:
+    "An overview of GTS Trade Solutions: global sourcing, automotive and agricultural components built to specification, build-to-print manufacturing of trailers, containers and reefer bodies, over-dimensional cargo logistics, and India distribution and dealer setup.",
+};
+
+/**
  * Why GTS — how the work is done, not what the services are. The services
  * have their own cards above, so nothing here restates one of them.
  */

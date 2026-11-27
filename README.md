@@ -391,11 +391,33 @@ the brightest part of the photograph.
 If a replaced photograph still looks stale in development, clear `.next/dev/cache/images` — the
 optimiser caches by URL, and the file name has not changed.
 
-**There is no film on the site.** A 51-second manufacturing film (`/videos/cisme.mp4`) used to sit
-on `/manufacturing`; it was removed at the client's request. It carried the RACE Innovations
-watermark and burned-in captions, and several frames carry a third-party channel watermark and OEM
-branding, so it was not mined for stills either. [VideoFigure](src/components/VideoFigure.tsx) is
-kept for a future film; a GTS-owned one should be supplied without burned-in text.
+**The film.** A GTS-owned corporate film (`/videos/gts-corporate-film.mp4`, 86 seconds) sits on the
+home page under the India partner band, in `<Section id="film">`, rendered by
+[VideoFigure](src/components/VideoFigure.tsx). Its copy and its schema inputs are one
+`corporateFilm` object in [src/data/home.ts](src/data/home.ts).
+
+It does not autoplay. The film is narrated, and `preload="metadata"` means the 10 MB costs nothing
+until someone presses play — only the 68 KB poster loads with the page. The poster
+(`/images/gts-corporate-film-poster.webp`) is the frame at 0:20, so the still a crawler indexes and
+the still under the play button are the same picture. The home page emits a `VideoObject` alongside
+its other schema; `corporateFilm.seconds` is what feeds the ISO-8601 duration, so correct it if the
+film is recut.
+
+The supplied master was 1920×1080 at 24 fps, 24 MB. It is re-encoded for the web with H.264 at
+CRF 29, AAC 112k and `+faststart` (so playback can begin before the file has finished arriving),
+which halves the weight without softening the burned-in captions — those are the limiting factor,
+and 1080p at CRF 29 holds them better than 720p at a lower CRF would:
+
+    ffmpeg -i master.mp4 -c:v libx264 -profile:v high -level 4.0 -preset slow -crf 29       -pix_fmt yuv420p -vf scale=1920:1080:flags=lanczos -r 24 -g 48       -c:a aac -b:a 112k -ar 48000 -ac 2 -movflags +faststart out.mp4
+
+The film carries open (burned-in) captions, so spoken content is on screen. A `<track>` VTT would
+still be better — selectable, translatable, machine-readable — and VideoFigure has the hook for one
+if the source ever supplies an SRT.
+
+An earlier 51-second manufacturing film (`/videos/cisme.mp4`) used to sit on `/manufacturing` and
+was removed at the client's request: it carried the RACE Innovations watermark, and several frames
+carry a third-party channel watermark and OEM branding, so it was not mined for stills either. The
+file is still in `public/videos/` and is referenced by nothing.
 
 The five taken from the RACE site are another company's assets — fine within the same group,
 worth confirming if any came from a stock library. One of them showed RACE branding on the load

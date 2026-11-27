@@ -11,13 +11,14 @@ import { Reveal } from "@/components/Reveal";
 import { Section, SectionHeading } from "@/components/Section";
 import { ServiceCard } from "@/components/ServiceCard";
 import { Spotlight } from "@/components/Spotlight";
-import { indiaPartner, whatWeDo, whyGts } from "@/data/home";
+import { VideoFigure } from "@/components/VideoFigure";
+import { corporateFilm, indiaPartner, whatWeDo, whyGts } from "@/data/home";
 import type { Card } from "@/data/types";
 import { blogPostsByDate } from "@/data/blog";
 import { homeFaqs } from "@/data/faq-groups";
 import { oemsOf } from "@/data/vehicle-models";
 import { buildMetadata, pageSeo } from "@/lib/seo";
-import { breadcrumbSchema, faqSchema, serviceSchema } from "@/lib/structured-data";
+import { breadcrumbSchema, faqSchema, serviceSchema, videoSchema } from "@/lib/structured-data";
 import { listVehicleModels } from "@/lib/vehicle-models-store";
 
 /**
@@ -134,11 +135,36 @@ export default async function HomePage() {
         </div>
       </Spotlight>
 
+      {/* The corporate film. It sits directly under the India partner band
+          because that band is where the page stops describing services and
+          starts asking for a conversation — and the film is the shortest way
+          to show what the four lines look like in practice before someone
+          decides to have one. Nothing autoplays: it carries narration, and a
+          film that starts talking on scroll is worse than one that waits. */}
+      <Section id="film">
+        <Reveal>
+          <SectionHeading
+            eyebrow="Corporate Film"
+            index={3}
+            title={corporateFilm.title}
+            lead={corporateFilm.lead}
+          />
+        </Reveal>
+        <Reveal>
+          <VideoFigure
+            src={corporateFilm.src}
+            poster={corporateFilm.poster}
+            label={corporateFilm.label}
+            className="mt-8 sm:mt-12"
+          />
+        </Reveal>
+      </Section>
+
       <Section tone="steel">
         <Reveal>
           <SectionHeading
             eyebrow="Why GTS"
-            index={3}
+            index={4}
             title="Built around what a technical buyer actually needs"
             lead="Sourcing is straightforward when the person on the other side understands the drawing, the application and the market it is going into."
           />
@@ -180,7 +206,7 @@ export default async function HomePage() {
           <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
             <SectionHeading
               eyebrow="Insights"
-              index={4}
+              index={5}
               title="Notes from the specification desk"
               lead="How an enquiry, a specification or a market entry is put together — written up from the questions buyers ask most."
             />
@@ -210,7 +236,7 @@ export default async function HomePage() {
         <Reveal>
           <SectionHeading
             eyebrow="Frequently Asked"
-            index={5}
+            index={6}
             title="The questions we are asked first"
             lead="One from each service. The full set, with everything on ODC logistics, route surveys and vehicle models, is on the FAQ page."
           />
@@ -231,6 +257,15 @@ export default async function HomePage() {
         data={[
           breadcrumbSchema([{ name: "Home", path: "/" }]),
           faqSchema(homeFaqs),
+          videoSchema({
+            name: corporateFilm.title,
+            description: corporateFilm.description,
+            path: "/#film",
+            contentPath: corporateFilm.src,
+            thumbnailPath: corporateFilm.poster,
+            seconds: corporateFilm.seconds,
+            uploadDate: corporateFilm.uploaded,
+          }),
           serviceSchema({
             name: "Import, export, component sourcing and contract manufacturing",
             description: pageSeo.home.description,

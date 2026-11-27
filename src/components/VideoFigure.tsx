@@ -16,6 +16,10 @@ import { AutoplayVideo } from "./AutoplayVideo";
  * Either way `preload="metadata"` keeps the page weight to the poster until
  * playback actually starts, and the caption sits *below* the frame rather than
  * over it, because the control bar occupies the bottom edge of a video.
+ *
+ * `plate` and `caption` are both optional: where a section heading already
+ * introduces the film, passing neither drops the figcaption and leaves the
+ * player on its own rather than saying the same thing twice.
  */
 export function VideoFigure({
   src,
@@ -31,9 +35,10 @@ export function VideoFigure({
   poster: string;
   /** Describes the film for assistive technology. */
   label: string;
-  /** Spec-sheet label, e.g. "PLATE 01". */
-  plate: string;
-  caption: string;
+  /** Spec-sheet label, e.g. "PLATE 01". Omit where a section heading already introduces the film. */
+  plate?: string;
+  /** Omit along with `plate` to render the player on its own, with no figcaption. */
+  caption?: string;
   className?: string;
   /** Start on scroll-into-view. Forces muted playback — see AutoplayVideo. */
   autoPlay?: boolean;
@@ -49,26 +54,40 @@ export function VideoFigure({
         {autoPlay ? (
           <AutoplayVideo src={src} poster={poster} label={label} className={frame} />
         ) : (
-          <video controls preload="metadata" poster={poster} aria-label={label} className={frame}>
+          <video
+            controls
+            playsInline
+            preload="metadata"
+            poster={poster}
+            aria-label={label}
+            className={frame}
+          >
             <source src={src} type="video/mp4" />
+            {label}
           </video>
         )}
       </div>
-      <figcaption className="mt-5">
-        <span className="index-mark text-[11px] font-bold tracking-[0.2em] text-accent-700">
-          {plate}
-        </span>
-        <p className="mt-2 max-w-[62ch] font-display text-[19px] font-bold leading-tight text-ink sm:text-[22px]">
-          {caption}
-        </p>
-        {autoPlay ? (
-          /* Autoplay is muted by browser policy, and nothing on screen says so —
-             a viewer would otherwise assume the film is silent. */
-          <p className="mt-2 text-[14px] leading-relaxed text-ink-muted">
-            Plays muted — use the player controls for sound.
-          </p>
-        ) : null}
-      </figcaption>
+      {plate || caption || autoPlay ? (
+        <figcaption className="mt-5">
+          {plate ? (
+            <span className="index-mark text-[11px] font-bold tracking-[0.2em] text-accent-700">
+              {plate}
+            </span>
+          ) : null}
+          {caption ? (
+            <p className="mt-2 max-w-[62ch] font-display text-[19px] font-bold leading-tight text-ink sm:text-[22px]">
+              {caption}
+            </p>
+          ) : null}
+          {autoPlay ? (
+            /* Autoplay is muted by browser policy, and nothing on screen says so —
+               a viewer would otherwise assume the film is silent. */
+            <p className="mt-2 text-[14px] leading-relaxed text-ink-muted">
+              Plays muted — use the player controls for sound.
+            </p>
+          ) : null}
+        </figcaption>
+      ) : null}
     </figure>
   );
 }
